@@ -32,6 +32,7 @@ static const char32_t* unknown_string = U"Unknown";
 static const char32_t* write_act_name = U"write";
 static const char32_t* write_act_body = U"buffer += ch;";
 
+// #define DEBUG_MODE
 struct Parsers_ptrs{
 public:
     Parsers_ptrs()                    = default;
@@ -61,8 +62,19 @@ Parsers_ptrs::Parsers_ptrs(const Location_ptr& loc)
     et_.ec                  = std::make_shared<Error_count>();
     et_.ids_trie            = std::make_shared<Char_trie>();
     et_.strs_trie           = std::make_shared<Char_trie>();
+#ifdef DEBUG_MODE
+    printf("et_.ec        : %p\n", et_.ec.get());
+    printf("et_.ids_trie  : %p\n", et_.ids_trie.get());
+    printf("et_.strs_trie : %p\n", et_.strs_trie.get());
+#endif
     scope_                  = std::make_shared<Scope>();
-    char32_sets_            = Trie_for_set_of_char32ptr();
+#ifdef DEBUG_MODE
+    printf("scope_        : %p\n", scope_.get());
+#endif
+    char32_sets_            = std::make_shared<Trie_for_set_of_char32>(); //Trie_for_set_of_char32ptr();
+#ifdef DEBUG_MODE
+    printf("char32_sets_  : %p\n", char32_sets_.get());
+#endif
     msc_                    = std::make_shared<Main_scaner>(loc, et_);
     expr_sc_                = std::make_shared<Expr_scaner>(loc, et_, char32_sets_);
     regexp_parser_          = std::make_shared<SLR_act_expr_parser>(expr_sc_,
@@ -393,7 +405,11 @@ void Main_parser::Main_parser_data::parse()
 }
 
 Main_parser::Main_parser(const Location_ptr& loc) :
-    impl_(std::make_unique<Main_parser_data>(loc)) {}
+    impl_(std::make_unique<Main_parser_data>(loc)) {
+#ifdef DEBUG_MODE
+        printf("impl_ pointer: %p\n", impl_.get());
+#endif
+}
 
 void Main_parser::compile()
 {

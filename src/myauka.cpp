@@ -59,7 +59,7 @@ std::map<std::string, FuncForKey> option_func = {
     {"--version", version}, {"--help", help}
 };
 
-
+#define DEBUG_MODE
 int main(int argc, char* argv[]){
     if(1 == argc){
         puts("Arguments are not specified.");
@@ -76,8 +76,17 @@ int main(int argc, char* argv[]){
     std::u32string t = get_processed_text(argv[1]);
     if(t.length()){
         char32_t* p      = const_cast<char32_t*>(t.c_str());
+#ifdef DEBUG_MODE
+        printf("text pointer:        %p\n", p);
+#endif
         auto      loc    = std::make_shared<Location>(p);
+#ifdef DEBUG_MODE
+        printf("location pointer:    %p\n", loc.get());
+#endif
         auto      mp     = std::make_shared<Main_parser>(loc);
+#ifdef DEBUG_MODE
+        printf("main parser pointer: %p\n", mp.get());
+#endif
         mp->compile();
         int       errors = mp->get_number_of_errors();
         if(!errors){

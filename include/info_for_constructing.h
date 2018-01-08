@@ -23,17 +23,21 @@ namespace info_for_constructing{
         Command_buffer idents;
     };
 
-    using Lexem_with_code = std::pair<std::string, size_t>;
-    using Lexems          = std::vector<Lexem_with_code>;
+//     using Lexem_with_code = std::pair<std::string, size_t>;
+//     using Lexems          = std::vector<Lexem_with_code>;
+//
+//     struct Codes_info{
+//     };
 
-    struct Codes_info{
+    struct Names{
+        std::string name_of_scaner_class;
+        std::string scaner_file_name_without_ext;
     };
 
     struct Info{
         Regexps     regexps;
-        Codes_info  codes_info;
-        std::string name_of_scaner_class;
-        std::string scaner_file_name_without_ext;
+        Names       names;
+//         Codes_info  codes_info;
     };
 };
 #endif

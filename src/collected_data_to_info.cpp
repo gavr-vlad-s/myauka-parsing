@@ -8,6 +8,7 @@
 */
 
 #include "../include/collected_data_to_info.h"
+#include "../include/idx_to_string.h"
 
 using namespace info_for_constructing;
 
@@ -20,11 +21,15 @@ Regexps data_to_regexps(const Collected_data& d)
     return result;
 }
 
-info_for_constructing::Info collected_data_to_info(const Collected_data& d)
+info_for_constructing::Info collected_data_to_info(const Collected_data&   d,
+                                                   const Errors_and_tries& et)
 {
     info_for_constructing::Info result;
 
     result.regexps = data_to_regexps(d);
+    for(const size_t c : d.codes_){
+        result.lexem_codes_names.push_back(idx_to_string(et.ids_trie,c));
+    }
 
     return result;
 }

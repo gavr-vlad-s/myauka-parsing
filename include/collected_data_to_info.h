@@ -11,5 +11,7 @@
 #define COLLECTED_DATA_TO_INFO_H
 #include "../include/collected_data.h"
 #include "../include/info_for_constructing.h"
-info_for_constructing::Info collected_data_to_info(const Collected_data& d);
+#include "../include/errors_and_tries.h"
+info_for_constructing::Info collected_data_to_info(const Collected_data& d,
+                                                   const Errors_and_tries& et);
 #endif

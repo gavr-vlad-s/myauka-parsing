@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <vector>
 #include "../include/command.h"
+#include "../include/automaton_constructing_info.h"
 
 namespace info_for_constructing{
     struct Regexps{
@@ -35,8 +36,10 @@ namespace info_for_constructing{
     };
 
     struct Info{
-        Regexps     regexps;
-        Names       names;
+        Regexps                  regexps;
+        Names                    names;
+        std::vector<std::string> lexem_codes_names;
+        Automata_info            automata_info;
 //         Codes_info  codes_info;
     };
 };

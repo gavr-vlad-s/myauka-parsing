@@ -59,7 +59,7 @@ std::map<std::string, FuncForKey> option_func = {
     {"--version", version}, {"--help", help}
 };
 
-#define DEBUG_MODE
+// #define DEBUG_MODE
 int main(int argc, char* argv[]){
     if(1 == argc){
         puts("Arguments are not specified.");

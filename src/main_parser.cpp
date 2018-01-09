@@ -26,6 +26,8 @@
 #include "../include/comments_parser.h"
 #include "../include/collected_data.h"
 #include "../include/verify_collected_data.h"
+#include "../include/aux_files_generate.h"
+#include "../include/collected_data_to_info.h"
 
 static const char32_t* none_string    = U"None";
 static const char32_t* unknown_string = U"Unknown";
@@ -418,6 +420,8 @@ void Main_parser::compile()
         impl_->parsers_.et_.ec->print();
         return;
     }
+    auto info = collected_data_to_info(impl_->data_);
+    aux_files_generate();
 }
 
 Main_parser::~Main_parser() = default;

@@ -13,7 +13,7 @@
 
 using namespace std::string_literals;
 
-static const std::string start_aut_name                = "Start_aut"s;
+static const std::string start_aut_name                = "A_start"s;
 static const std::string start_aut_proc_proto          = "bool start_proc()"s;
 static const std::string start_aut_proc_ptr_fmt        = "&{0}::start_proc"s;
 static const std::string start_aut_final_proc_proto    = "void none_final_proc()"s;
@@ -21,10 +21,10 @@ static const std::string start_aut_final_proc_ptr_fmt  = "&{0}::none_final_proc"
 static const std::string start_aut_final_proc_impl_fmt =
     R"~(void {0}::none_final_proc(){{
     /* This subroutine will be called if, after reading the input text, it turned
-     * out to be in the A_unknown automaton. Then we do not need to do anything. */
+     * out to be in the A_start automaton. Then we do not need to do anything. */
 }})~"s;
 
-Automaton_constructing_info implement_none_automaton(info_for_constructing::Info& info)
+Automaton_constructing_info implement_none_automaton(const info_for_constructing::Info& info)
 {
     Automaton_constructing_info result;
     result.name             = start_aut_name;

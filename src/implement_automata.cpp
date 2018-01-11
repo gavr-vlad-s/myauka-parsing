@@ -7,9 +7,14 @@
              gavvs1977@yandex.ru
 */
 
+#include "../include/info_for_constructing.h"
 #include "../include/implement_automata.h"
+#include "../include/implement_none_automaton.h"
 
+using namespace info_for_constructing;
 void implement_automata(info_for_constructing::Info& info,
                         const Collected_data&        d,
                         const Errors_and_tries&      et)
-{}
+{
+    info.automata_info.push_back(implement_none_automaton(info));
+}

@@ -61,15 +61,6 @@ static Names data_to_names(const Collected_data&   d,
     result.lexem_info_name              = idx_to_string(idst,
                                                         indeces.lexem_info_name_idx,
                                                         default_lexem_info_name);
-// !        std::string name_of_scaner_class;
-// !        std::string scaner_file_name_without_ext;
-// !        std::string codes_type_name;
-// !        std::string ident_name;
-// !        std::string token_fields;
-// !        std::string class_members;
-// !        std::string header_additions;
-// !        std::string impl_additions;
-//         std::string lexem_info_name;
 
     return result;
 }
@@ -85,6 +76,7 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&   d,
     }
 
     result.names = data_to_names(d, et);
+    result.set_of_used_automata = d.aut_data_.set_of_used_automata;
 
     implement_automata(result, d, et);
 

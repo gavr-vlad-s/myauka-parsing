@@ -44,6 +44,7 @@ namespace info_for_constructing{
     };
 
     struct Info{
+        size_t                   set_of_used_automata = 0;
         Regexps                  regexps;
         Names                    names;
         std::vector<std::string> lexem_codes_names;

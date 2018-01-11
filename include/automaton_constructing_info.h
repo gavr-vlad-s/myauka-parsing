@@ -14,9 +14,11 @@
 struct Automaton_constructing_info{
     std::string name;
     std::string proc_proto;
-    std::string proc_body;
+    std::string proc_ptr;
+    std::string proc_impl;
     std::string final_proc_proto;
-    std::string final_proc_body;
+    std::string final_proc_ptr;
+    std::string final_proc_impl;
 };
 
 using Automata_info = std::vector<Automaton_constructing_info>;

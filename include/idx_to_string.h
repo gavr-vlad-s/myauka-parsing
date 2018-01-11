@@ -19,5 +19,7 @@
  *
  *  \return          string corresponding to the index idx
  *  */
-std::string idx_to_string(std::shared_ptr<Char_trie> t, size_t idx);
+std::string idx_to_string(std::shared_ptr<Char_trie> t,
+                          size_t                     idx,
+                          std::string                default_value = std::string());
 #endif

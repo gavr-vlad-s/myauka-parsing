@@ -9,6 +9,7 @@
 
 #include <cctype>
 #include <string>
+#include <set>
 #include "../include/collected_data_to_info.h"
 #include "../include/idx_to_string.h"
 #include "../include/implement_automata.h"
@@ -28,6 +29,14 @@ using namespace std::string_literals;
 static const std::string default_codes_type_name = "Lexem_code"s;
 static const std::string default_lexem_info_name = "Lexem_info"s;
 static const std::string default_scaner_name     = "Scaner"s;
+
+static const std::set<char32_t> spaces = {
+    0,  1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,
+    17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32
+};
+
+static const std::string spaces_name             = "SPACES"s;
+
 
 static Names data_to_names(const Collected_data&   d,
                            const Errors_and_tries& et)
@@ -76,7 +85,11 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&   d,
     }
 
     result.names = data_to_names(d, et);
-    result.set_of_used_automata = d.aut_data_.set_of_used_automata;
+    result.set_of_used_automata      = d.aut_data_.set_of_used_automata;
+    result.newline_is_lexem          = d.newline_is_lexem_;
+
+    size_t sp_indeces                = result.char_cat.insertSet(spaces);
+    result.category_name[sp_indeces] = spaces_name;
 
     implement_automata(result, d, et);
 

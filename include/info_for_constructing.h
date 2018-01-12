@@ -14,8 +14,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <map>
 #include "../include/command.h"
 #include "../include/automaton_constructing_info.h"
+#include "../include/trie_for_set.h"
 
 namespace info_for_constructing{
     struct Regexps{
@@ -44,11 +46,15 @@ namespace info_for_constructing{
     };
 
     struct Info{
-        size_t                   set_of_used_automata = 0;
-        Regexps                  regexps;
-        Names                    names;
-        std::vector<std::string> lexem_codes_names;
-        Automata_info            automata_info;
+        size_t                        set_of_used_automata = 0;
+        Regexps                       regexps;
+        Names                         names;
+        std::vector<std::string>      lexem_codes_names;
+        Automata_info                 automata_info;
+        std::vector<std::string>      ifs_of_start_procs;
+        Trie_for_set_of_char32        char_cat;
+        std::map<size_t, std::string> category_name;
+        bool                          newline_is_lexem     = false;
 //         Codes_info  codes_info;
     };
 };

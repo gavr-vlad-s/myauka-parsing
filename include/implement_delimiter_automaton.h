@@ -11,5 +11,5 @@
 #define IMPLEMENT_DELIMITER_AUTOMATON_H
 #include "../include/info_for_constructing.h"
 #include "../include/automaton_constructing_info.h"
-Automaton_constructing_info implement_delimiter_automaton(const info_for_constructing::Info& info);
+Automaton_constructing_info implement_delimiter_automaton(info_for_constructing::Info& info);
 #endif

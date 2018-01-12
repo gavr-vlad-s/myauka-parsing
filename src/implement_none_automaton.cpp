@@ -24,16 +24,6 @@ static const std::string start_aut_final_proc_impl_fmt =
      * out to be in the A_start automaton. Then we do not need to do anything. */
 }})~"s;
 
-// static const std::string start_proc_fmt                =
-//     R"~(bool {0}::start_proc(){{
-//     bool t = true;
-//     state  = -1;
-//     /* For an automaton that processes a lexeme, the state with the number (-1) is
-//      * the state in which this automaton is initialized. */
-//     {{0}}
-//     return t;
-// }})~"s;
-
 static const std::string start_proc_newline_is_not_lexem_fmt =
     R"~(bool {0}::start_proc(){{
     bool t = true;

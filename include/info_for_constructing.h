@@ -45,16 +45,18 @@ namespace info_for_constructing{
 //         std::string fields_for_comments_handling;
     };
 
+    using Delimiter_with_code = std::pair<std::u32string, size_t>;
     struct Info{
-        size_t                        set_of_used_automata = 0;
-        Regexps                       regexps;
-        Names                         names;
-        std::vector<std::string>      lexem_codes_names;
-        Automata_info                 automata_info;
-        std::vector<std::string>      ifs_of_start_procs;
-        Trie_for_set_of_char32        char_cat;
-        std::map<size_t, std::string> category_name;
-        bool                          newline_is_lexem     = false;
+        size_t                           set_of_used_automata = 0;
+        Regexps                          regexps;
+        Names                            names;
+        std::vector<std::string>         lexem_codes_names;
+        Automata_info                    automata_info;
+        std::vector<std::string>         ifs_of_start_procs;
+        Trie_for_set_of_char32           char_cat;
+        std::map<size_t, std::string>    category_name;
+        bool                             newline_is_lexem     = false;
+        std::vector<Delimiter_with_code> delims;
 //         Codes_info  codes_info;
     };
 };

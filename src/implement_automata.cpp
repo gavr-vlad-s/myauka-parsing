@@ -23,6 +23,7 @@ void implement_automata(info_for_constructing::Info& info,
     info.automata_info.push_back(implement_none_automaton(info));
     info.automata_info.push_back(implement_unknown_automaton(info));
     if(belongs(Delimiter_aut, info.set_of_used_automata)){
-        info.automata_info.push_back(implement_delimiter_automaton(info));
+        auto da = implement_delimiter_automaton(info);
+        info.automata_info.push_back(da);
     }
 }

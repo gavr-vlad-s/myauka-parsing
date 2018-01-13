@@ -20,7 +20,27 @@ static const std::string delimiter_aut_proc_proto          = "bool delimiter_pro
 static const std::string delimiter_aut_proc_ptr_fmt        = "&{0}::delimiter_proc"s;
 static const std::string delimiter_aut_final_proc_proto    = "void delimiter_final_proc()"s;
 static const std::string delimiter_aut_final_proc_ptr_fmt  = "&{0}::delimiter_final_proc"s;
-// static const std::string unknown_aut_final_proc_impl_fmt =
+static const std::string unknown_aut_final_proc_impl_fmt  =
+    R"~(bool {0}::delimiter_proc(){{
+    bool t = false;
+    if(-1 == state){{
+        state = get_init_state(ch, init_table_for_delimiters,
+                               sizeof(init_table_for_delimiters)/sizeof(State_for_char));
+        token.code = delim_jump_table[state].code;
+        t = true;
+        return t;
+    }}
+    Elem elem  = delim_jump_table[state];
+    token.code = elem.code;
+    int y = search_char(ch, elem.symbols);
+    if(y != THERE_IS_NO_CHAR){{
+        state = elem.first_state + y; t = true;
+    }}
+    {1}
+    return t;
+)~"s;
+
+// // //
 //     R"~(void {0}::unknown_final_proc(){{
 //     /* This subroutine will be called if, after reading the input text, it turned
 //      * out to be in the automaton A_unknown. Then we do not need to do anything. */
@@ -29,6 +49,16 @@ static const std::string delimiter_aut_final_proc_ptr_fmt  = "&{0}::delimiter_fi
 //     R"~(bool {0}::unknown_proc(){
 //     return belongs(Other, char_categories);
 // })~"s;
+static std::string delimiter_automaton_impl(info_for_constructing::Info& info)
+{
+    std::string result;
+    std::set<char32_t>          first_chars_for_delims; /* This set consists of
+                                                           characters from which
+                                                           the delimiters can begin. */
+    Attributed_char_trie        atrie;
+    std::vector<std::u32string> delimiter_strings;
+    return result;
+}
 
 Automaton_constructing_info implement_delimiter_automaton(info_for_constructing::Info& info)
 {
@@ -37,6 +67,7 @@ Automaton_constructing_info implement_delimiter_automaton(info_for_constructing:
     result.proc_proto       = delimiter_aut_proc_proto;
     result.proc_ptr         = fmt::format(delimiter_aut_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);
+    result.proc_impl        = delimiter_automaton_impl(info);
 //     result.proc_impl        = fmt::format(unknown_aut_proc_impl_fmt,
 //                                           info.names.name_of_scaner_class);
     result.final_proc_proto = delimiter_aut_final_proc_proto;
@@ -62,22 +93,7 @@ Automaton_constructing_info implement_delimiter_automaton(info_for_constructing:
 // // // static const std::string del_begin_cat_name_by_default = "DELIMITER_BEGIN";
 // // // static const std::string del_jump_table_name           = "delim_jump_table";
 // // // static const std::string del_init_table_name           = "init_table_for_delimiters";
-// // // static const std::string delim_proc_body_              = R"~(::delimiter_proc(){
-// // //     bool t = false;
-// // //     if(-1 == state){
-// // //         state = get_init_state(ch, init_table_for_delimiters,
-// // //                                sizeof(init_table_for_delimiters)/sizeof(State_for_char));
-// // //         token.code = delim_jump_table[state].code;
-// // //         t = true;
-// // //         return t;
-// // //     }
-// // //     Elem elem = delim_jump_table[state];
-// // //     token.code = delim_jump_table[state].code;
-// // //     int y = search_char(ch, elem.symbols);
-// // //     if(y != THERE_IS_NO_CHAR){
-// // //         state = elem.first_state + y; t = true;
-// // //     })~";
-// // //
+// // // static const std::string delim_proc_body_              =
 // // // static std::string delim_proc_body(const std::string& s){
 // // //     std::string result;
 // // //     result = delim_proc_body_;
@@ -99,13 +115,6 @@ Automaton_constructing_info implement_delimiter_automaton(info_for_constructing:
 // // //     if(!belongs(Delimiter_aut, info.set_of_used_automata)){
 // // //         return;
 // // //     }
-// // //
-// // //     std::set<char32_t>          first_chars_for_delims; /* This set consists of
-// // //                                                            characters from which
-// // //                                                            the delimiters can begin. */
-// // //     Attributed_char_trie        atrie;
-// // //
-// // //     std::vector<std::u32string> delimiter_strings;
 // // //
 // // //     for(size_t del_idx : info.del_repres){
 // // //         auto delimiter = info.et.strs_trie->get_string(del_idx);

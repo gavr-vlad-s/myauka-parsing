@@ -30,7 +30,7 @@ static const std::string delimiter_aut_final_proc_ptr_fmt  = "&{0}::delimiter_fi
 //     return belongs(Other, char_categories);
 // })~"s;
 
-Automaton_constructing_info implement_unknown_automaton(info_for_constructing::Info& info)
+Automaton_constructing_info implement_delimiter_automaton(info_for_constructing::Info& info)
 {
     Automaton_constructing_info result;
     result.name             = delimiter_aut_name;

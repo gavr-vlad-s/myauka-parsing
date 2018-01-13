@@ -12,6 +12,8 @@
 #include "../include/implement_none_automaton.h"
 #include "../include/implement_unknown_automaton.h"
 #include "../include/used_automaton.h"
+#include "../include/belongs.h"
+#include "../include/implement_delimiter_automaton.h"
 
 using namespace info_for_constructing;
 void implement_automata(info_for_constructing::Info& info,

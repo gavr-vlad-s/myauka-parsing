@@ -12,7 +12,10 @@
 #include "../include/collected_data.h"
 #include "../include/info_for_constructing.h"
 #include "../include/errors_and_tries.h"
-void implement_automata(info_for_constructing::Info& info,
-                        const Collected_data&        d,
-                        const Errors_and_tries&      et);
+#include "../include/scope.h"
+
+void implement_automata(info_for_constructing::Info&  info,
+                        const Collected_data&         d,
+                        const Errors_and_tries&       et,
+                        const std::shared_ptr<Scope>& scope);
 #endif

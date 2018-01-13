@@ -9,9 +9,12 @@
 
 #ifndef COLLECTED_DATA_TO_INFO_H
 #define COLLECTED_DATA_TO_INFO_H
+#include <memory>
 #include "../include/collected_data.h"
 #include "../include/info_for_constructing.h"
 #include "../include/errors_and_tries.h"
-info_for_constructing::Info collected_data_to_info(const Collected_data& d,
-                                                   const Errors_and_tries& et);
+#include "../include/scope.h"
+info_for_constructing::Info collected_data_to_info(const Collected_data&         d,
+                                                   const Errors_and_tries&       et,
+                                                   const std::shared_ptr<Scope>& scope);
 #endif

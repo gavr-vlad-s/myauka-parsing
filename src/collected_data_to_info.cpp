@@ -74,8 +74,9 @@ static Names data_to_names(const Collected_data&   d,
     return result;
 }
 
-info_for_constructing::Info collected_data_to_info(const Collected_data&   d,
-                                                   const Errors_and_tries& et)
+info_for_constructing::Info collected_data_to_info(const Collected_data&         d,
+                                                   const Errors_and_tries&       et,
+                                                   const std::shared_ptr<Scope>& scope)
 {
     info_for_constructing::Info result;
 
@@ -91,7 +92,9 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&   d,
     size_t sp_indeces                = result.char_cat.insertSet(spaces);
     result.category_name[sp_indeces] = spaces_name;
 
-    implement_automata(result, d, et);
+    result.del_repres = d.del_repres_;
+
+    implement_automata(result, d, et, scope);
 
     return result;
 }

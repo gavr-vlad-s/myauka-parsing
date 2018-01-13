@@ -420,7 +420,9 @@ void Main_parser::compile()
         impl_->parsers_.et_.ec->print();
         return;
     }
-    auto info = collected_data_to_info(impl_->data_, impl_->parsers_.et_);
+    auto info = collected_data_to_info(impl_->data_,
+                                       impl_->parsers_.et_,
+                                       impl_->parsers_.scope_);
     aux_files_generate();
 }
 

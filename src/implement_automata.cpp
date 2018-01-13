@@ -14,16 +14,18 @@
 #include "../include/used_automaton.h"
 #include "../include/belongs.h"
 #include "../include/implement_delimiter_automaton.h"
+#include "../include/scope.h"
 
 using namespace info_for_constructing;
-void implement_automata(info_for_constructing::Info& info,
-                        const Collected_data&        d,
-                        const Errors_and_tries&      et)
+void implement_automata(info_for_constructing::Info&  info,
+                        const Collected_data&         d,
+                        const Errors_and_tries&       et,
+                        const std::shared_ptr<Scope>& scope)
 {
     info.automata_info.push_back(implement_none_automaton(info));
     info.automata_info.push_back(implement_unknown_automaton(info));
     if(belongs(Delimiter_aut, info.set_of_used_automata)){
-        auto da = implement_delimiter_automaton(info);
+        auto da = implement_delimiter_automaton(info, et, scope);
         info.automata_info.push_back(da);
     }
 }

@@ -12,6 +12,7 @@
 #include "../include/format.h"
 #include "../include/used_automaton.h"
 #include "../include/belongs.h"
+#include "../include/attributed_char_trie.h"
 
 using namespace std::string_literals;
 
@@ -49,7 +50,9 @@ static const std::string unknown_aut_final_proc_impl_fmt  =
 //     R"~(bool {0}::unknown_proc(){
 //     return belongs(Other, char_categories);
 // })~"s;
-static std::string delimiter_automaton_impl(info_for_constructing::Info& info)
+static std::string delimiter_automaton_impl(info_for_constructing::Info&  info,
+                                            const Errors_and_tries&       et,
+                                            const std::shared_ptr<Scope>& scope)
 {
     std::string result;
     std::set<char32_t>          first_chars_for_delims; /* This set consists of
@@ -57,17 +60,60 @@ static std::string delimiter_automaton_impl(info_for_constructing::Info& info)
                                                            the delimiters can begin. */
     Attributed_char_trie        atrie;
     std::vector<std::u32string> delimiter_strings;
+
+    for(size_t del_idx : info.del_repres){
+        auto delimiter = et.strs_trie->get_string(del_idx);
+        delimiter_strings.push_back(delimiter);
+        first_chars_for_delims.insert(delimiter[0]);
+    }
+    size_t counter = 0;
+    for(size_t del_idx : info.del_repres){
+        Attributed_cstring atrib_cstr;
+        atrib_cstr.str       = const_cast<char32_t*>(delimiter_strings[counter].c_str());
+        auto& scope_         = scope;
+        atrib_cstr.attribute = (scope_->strsc[del_idx]).code;
+        atrie.insert(attributed_cstring2string(atrib_cstr, 1));
+        counter++;
+    }
+
+
+    Jumps_and_inits jmps = atrie.jumps(); /* We built a sketch for
+                                             the transition table. */
+    /* Now we need to add the desired text to the implementation of the start automaton
+     * and generate a function that handles the delimiters. */
+// // //     auto cat_res = add_category(info, first_chars_for_delims, del_begin_cat_name_by_default);
+// // //     std::string delimiter_begin_cat_name = cat_res.second;
+// // //
+// // //     info.aut_impl[Start_aut] += "\n    if(belongs(" + delimiter_begin_cat_name +
+// // //         ", char_categories)){\n        (loc->pcurrent_char)--; " +
+// // //         "automaton = A_delimiter;\n        state = -1;\n        return t;\n    }\n";
+// // //
+// // //     auto del_postact = get_act_repres(info, info.del_postaction);
+// // //
+// // //     info.aut_impl[Delimiter_aut] = jump_table_string_repres(info, jmps, del_jump_table_name,
+// // //                                                             del_init_table_name) +
+// // //                               "bool " + info.name_of_scaner_class + delim_proc_body(del_postact);
+// // //
+// // //     info.aut_impl_fin_proc[Delimiter_aut] = "void " + info.name_of_scaner_class +
+// // //                                        R"~(::delimiter_final_proc(){
+// // //     )~" + indent + del_postact +
+// // //     R"~(
+// // //     token.code = delim_jump_table[state].code;
+// // //     )~" + "\n}";
     return result;
 }
 
-Automaton_constructing_info implement_delimiter_automaton(info_for_constructing::Info& info)
+Automaton_constructing_info
+    implement_delimiter_automaton(info_for_constructing::Info&  info,
+                                  const Errors_and_tries&       et,
+                                  const std::shared_ptr<Scope>& scope)
 {
     Automaton_constructing_info result;
     result.name             = delimiter_aut_name;
     result.proc_proto       = delimiter_aut_proc_proto;
     result.proc_ptr         = fmt::format(delimiter_aut_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);
-    result.proc_impl        = delimiter_automaton_impl(info);
+    result.proc_impl        = delimiter_automaton_impl(info, et, scope);
 //     result.proc_impl        = fmt::format(unknown_aut_proc_impl_fmt,
 //                                           info.names.name_of_scaner_class);
     result.final_proc_proto = delimiter_aut_final_proc_proto;
@@ -115,43 +161,4 @@ Automaton_constructing_info implement_delimiter_automaton(info_for_constructing:
 // // //     if(!belongs(Delimiter_aut, info.set_of_used_automata)){
 // // //         return;
 // // //     }
-// // //
-// // //     for(size_t del_idx : info.del_repres){
-// // //         auto delimiter = info.et.strs_trie->get_string(del_idx);
-// // //         delimiter_strings.push_back(delimiter);
-// // //         first_chars_for_delims.insert(delimiter[0]);
-// // //     }
-// // //     size_t counter = 0;
-// // //     for(size_t del_idx : info.del_repres){
-// // //         Attributed_cstring atrib_cstr;
-// // //         atrib_cstr.str       = const_cast<char32_t*>(delimiter_strings[counter].c_str());
-// // //         auto& scope_         = info.scope;
-// // //         atrib_cstr.attribute = (scope_->strsc[del_idx]).code;
-// // //         atrie.insert(attributed_cstring2string(atrib_cstr, 1));
-// // //         counter++;
-// // //     }
-// // //
-// // //     Jumps_and_inits jmps = atrie.jumps(); /* We built a workpiece for
-// // //                                              the transition table. */
-// // //     /* Now we need to add the desired text to the implementation of the start automaton
-// // //      * and generate a function that handles the delimiters. */
-// // //     auto cat_res = add_category(info, first_chars_for_delims, del_begin_cat_name_by_default);
-// // //     std::string delimiter_begin_cat_name = cat_res.second;
-// // //
-// // //     info.aut_impl[Start_aut] += "\n    if(belongs(" + delimiter_begin_cat_name +
-// // //         ", char_categories)){\n        (loc->pcurrent_char)--; " +
-// // //         "automaton = A_delimiter;\n        state = -1;\n        return t;\n    }\n";
-// // //
-// // //     auto del_postact = get_act_repres(info, info.del_postaction);
-// // //
-// // //     info.aut_impl[Delimiter_aut] = jump_table_string_repres(info, jmps, del_jump_table_name,
-// // //                                                             del_init_table_name) +
-// // //                               "bool " + info.name_of_scaner_class + delim_proc_body(del_postact);
-// // //
-// // //     info.aut_impl_fin_proc[Delimiter_aut] = "void " + info.name_of_scaner_class +
-// // //                                        R"~(::delimiter_final_proc(){
-// // //     )~" + indent + del_postact +
-// // //     R"~(
-// // //     token.code = delim_jump_table[state].code;
-// // //     )~" + "\n}";
 // // // }

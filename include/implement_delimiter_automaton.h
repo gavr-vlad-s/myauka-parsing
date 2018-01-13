@@ -9,7 +9,14 @@
 
 #ifndef IMPLEMENT_DELIMITER_AUTOMATON_H
 #define IMPLEMENT_DELIMITER_AUTOMATON_H
+#include <memory>
 #include "../include/info_for_constructing.h"
 #include "../include/automaton_constructing_info.h"
-Automaton_constructing_info implement_delimiter_automaton(info_for_constructing::Info& info);
+#include "../include/errors_and_tries.h"
+#include "../include/scope.h"
+
+Automaton_constructing_info
+    implement_delimiter_automaton(info_for_constructing::Info&  info,
+                                  const Errors_and_tries&       et,
+                                  const std::shared_ptr<Scope>& scope);
 #endif

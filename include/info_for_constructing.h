@@ -57,6 +57,8 @@ namespace info_for_constructing{
         Trie_for_set_of_char32           char_cat;
         std::map<size_t, std::string>    category_name;
         bool                             newline_is_lexem     = false;
+        std::string                      keywords_postaction;
+        std::string                      delimiters_postaction;
 //         std::vector<Delimiter_with_code> delims;
 //         Codes_info  codes_info;
     };

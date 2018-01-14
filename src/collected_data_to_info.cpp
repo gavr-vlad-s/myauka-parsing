@@ -92,7 +92,13 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&        
     size_t sp_indeces                = result.char_cat.insertSet(spaces);
     result.category_name[sp_indeces] = spaces_name;
 
-    result.del_repres = d.del_repres_;
+    result.del_repres                = d.del_repres_;
+
+    auto& strst                      = et.strs_trie;
+    result.keywords_postaction       = idx_to_string(strst,
+                                                     d.postactions_.keywords_postaction);
+    result.delimiters_postaction     = idx_to_string(strst,
+                                                     d.postactions_.delimiters_postaction);
 
     implement_automata(result, d, et, scope);
 

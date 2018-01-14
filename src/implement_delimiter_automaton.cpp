@@ -13,6 +13,8 @@
 #include "../include/used_automaton.h"
 #include "../include/belongs.h"
 #include "../include/attributed_char_trie.h"
+#include "../include/add_category.h"
+#include "../include/jump_table_string_repres.h"
 
 using namespace std::string_literals;
 
@@ -39,6 +41,16 @@ static const std::string unknown_aut_final_proc_impl_fmt  =
     }}
     {1}
     return t;
+)~"s;
+
+static const std::string del_begin_cat_name_by_default = "DELIMITER_BEGIN"s;
+static const std::string delim_if_fmt = R"~(
+    if(belongs({0}, char_categories)){{
+        (loc->pcurrent_char)--;
+        automaton = A_delimiter;
+        state = -1;
+        return t;
+    }}
 )~"s;
 
 // // //
@@ -81,14 +93,11 @@ static std::string delimiter_automaton_impl(info_for_constructing::Info&  info,
                                              the transition table. */
     /* Now we need to add the desired text to the implementation of the start automaton
      * and generate a function that handles the delimiters. */
-// // //     auto cat_res = add_category(info, first_chars_for_delims, del_begin_cat_name_by_default);
-// // //     std::string delimiter_begin_cat_name = cat_res.second;
-// // //
-// // //     info.aut_impl[Start_aut] += "\n    if(belongs(" + delimiter_begin_cat_name +
-// // //         ", char_categories)){\n        (loc->pcurrent_char)--; " +
-// // //         "automaton = A_delimiter;\n        state = -1;\n        return t;\n    }\n";
-// // //
-// // //     auto del_postact = get_act_repres(info, info.del_postaction);
+    auto cat_res = add_category(info, first_chars_for_delims, del_begin_cat_name_by_default);
+    std::string delimiter_begin_cat_name = cat_res.second;
+    auto delim_if = fmt::format(delim_if_fmt, delimiter_begin_cat_name);
+    info.ifs_of_start_procs.push_back(delim_if);
+    auto del_postact = info.delimiters_postaction;
 // // //
 // // //     info.aut_impl[Delimiter_aut] = jump_table_string_repres(info, jmps, del_jump_table_name,
 // // //                                                             del_init_table_name) +
@@ -129,14 +138,13 @@ Automaton_constructing_info
 // // // #include "../include/attributed_char_trie.h"
 // // // #include "../include/errors_and_tries.h"
 // // // #include "../include/idx_to_string.h"
-// // // #include "../include/jump_table_string_repres.h"
+
 // // // #include "../include/add_category.h"
 // // // #include "../include/get_act_repres.h"
 // // // #include "../include/indent.h"
 // // // #include <string>
 // // // #include <vector>
 // // //
-// // // static const std::string del_begin_cat_name_by_default = "DELIMITER_BEGIN";
 // // // static const std::string del_jump_table_name           = "delim_jump_table";
 // // // static const std::string del_init_table_name           = "init_table_for_delimiters";
 // // // static const std::string delim_proc_body_              =

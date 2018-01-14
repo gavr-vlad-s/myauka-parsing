@@ -43,7 +43,7 @@ Options:
 
 static const char* version_str =
     R"~(Myauka, lexical analyzer generator, v.2.0.0
-(c) Gavrilov Vladimir Sergeevich 2016--2017)~";
+(c) Gavrilov Vladimir Sergeevich 2016--2018)~";
 
 typedef void (*FuncForKey)();
 

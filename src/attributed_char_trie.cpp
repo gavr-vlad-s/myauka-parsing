@@ -126,12 +126,12 @@ size_t Attributed_char_trie::jumps_for_subtrie(size_t subtrie_root,
     size_t state = begin_state;
     for(const auto& layer : levels){
     /* Cycle through layers. */
-        size_t increment = layer.size();
+        size_t increment  = layer.size();
+        size_t correction = 0;
         for(size_t x : layer){
         /* Cycle through the current layer. */
             Jump_chars jc;
             jc.jump_chars        = chars_of_children(node_buffer[x].first_child);
-            jc.first_state       = state + increment;
             jc.code              = node_buffer[x].c.attribute;
 //             size_t current_child = node_buffer[x].first_child;
 //             while(current_child){
@@ -139,10 +139,13 @@ size_t Attributed_char_trie::jumps_for_subtrie(size_t subtrie_root,
 //                 jc.jump_chars += node_buffer[current_child].c.ch;
 //                 current_child = node_buffer[current_child].next;
 //             }
-            state++;
             if(jc.jump_chars.empty()){
                 jc.first_state = 0;
+            }else{
+                jc.first_state =  state + increment + correction;
+                correction     += jc.jump_chars.length() - 1;
             }
+            state++;
             current_jumps.push_back(jc);
         }
     }
@@ -158,7 +161,7 @@ Jumps_and_inits Attributed_char_trie::jumps(){
             std::pair<size_t,char32_t>(current_state, node_buffer[subtrie_root].c.ch)
         );
         current_state = jumps_for_subtrie(subtrie_root, current_state, ji.jumps);
-        subtrie_root = node_buffer[subtrie_root].next;
+        subtrie_root  = node_buffer[subtrie_root].next;
     }
     if(!ji.init_table.empty()){
         std::sort(ji.init_table.begin(), ji.init_table.end(),

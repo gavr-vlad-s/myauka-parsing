@@ -23,7 +23,7 @@ static const std::string delimiter_aut_proc_proto          = "bool delimiter_pro
 static const std::string delimiter_aut_proc_ptr_fmt        = "&{0}::delimiter_proc"s;
 static const std::string delimiter_aut_final_proc_proto    = "void delimiter_final_proc()"s;
 static const std::string delimiter_aut_final_proc_ptr_fmt  = "&{0}::delimiter_final_proc"s;
-static const std::string unknown_aut_final_proc_impl_fmt  =
+static const std::string delimiter_aut_proc_impl_fmt       =
     R"~(bool {0}::delimiter_proc(){{
     bool t = false;
     if(-1 == state){{
@@ -39,11 +39,15 @@ static const std::string unknown_aut_final_proc_impl_fmt  =
     if(y != THERE_IS_NO_CHAR){{
         state = elem.first_state + y; t = true;
     }}
-    {1}
-    return t;
+    {1}return t;
 )~"s;
 
-static const std::string del_begin_cat_name_by_default = "DELIMITER_BEGIN"s;
+static const std::string postaction_fmt                    =
+    R"~(    if(!t){{
+        {0};
+    }})~"s;
+
+static const std::string del_begin_cat_name_by_default     = "DELIMITER_BEGIN"s;
 static const std::string delim_if_fmt = R"~(
     if(belongs({0}, char_categories)){{
         (loc->pcurrent_char)--;
@@ -53,15 +57,14 @@ static const std::string delim_if_fmt = R"~(
     }}
 )~"s;
 
-// // //
-//     R"~(void {0}::unknown_final_proc(){{
-//     /* This subroutine will be called if, after reading the input text, it turned
-//      * out to be in the automaton A_unknown. Then we do not need to do anything. */
-// }})~"s;
-// static const std::string unknown_aut_proc_impl_fmt       =
-//     R"~(bool {0}::unknown_proc(){
-//     return belongs(Other, char_categories);
-// })~"s;
+static const std::string del_jump_table_name           = "delim_jump_table"s;
+static const std::string del_init_table_name           = "init_table_for_delimiters"s;
+
+static const std::string delim_aut_final_proc_fmt      =
+    R"~(void {0}::delimiter_final_proc(){{
+    {1}token.code = delim_jump_table[state].code;
+}})~"s;
+
 static std::string delimiter_automaton_impl(info_for_constructing::Info&  info,
                                             const Errors_and_tries&       et,
                                             const std::shared_ptr<Scope>& scope)
@@ -93,22 +96,38 @@ static std::string delimiter_automaton_impl(info_for_constructing::Info&  info,
                                              the transition table. */
     /* Now we need to add the desired text to the implementation of the start automaton
      * and generate a function that handles the delimiters. */
-    auto cat_res = add_category(info, first_chars_for_delims, del_begin_cat_name_by_default);
+    auto cat_res                         = add_category(info,
+                                                        first_chars_for_delims,
+                                                        del_begin_cat_name_by_default);
     std::string delimiter_begin_cat_name = cat_res.second;
-    auto delim_if = fmt::format(delim_if_fmt, delimiter_begin_cat_name);
+    auto delim_if                        = fmt::format(delim_if_fmt,
+                                                       delimiter_begin_cat_name);
     info.ifs_of_start_procs.push_back(delim_if);
+    auto del_postact                     = info.delimiters_postaction;
+    std::string postaction_code_in_proc  = del_postact.empty() ?
+                                           std::string() :
+                                           fmt::format(postaction_fmt, del_postact);
+
+    auto jump_table_repres = jump_table_string_repres(info,
+                                                      jmps,
+                                                      del_jump_table_name,
+                                                      del_init_table_name);
+    result = jump_table_repres +
+             fmt::format(delimiter_aut_proc_impl_fmt,
+                         info.names.name_of_scaner_class,
+                         postaction_code_in_proc);
+
+    return result;
+}
+
+std::string delimiter_automaton_impl_finals(const info_for_constructing::Info&  info)
+{
+    std::string result;
     auto del_postact = info.delimiters_postaction;
-// // //
-// // //     info.aut_impl[Delimiter_aut] = jump_table_string_repres(info, jmps, del_jump_table_name,
-// // //                                                             del_init_table_name) +
-// // //                               "bool " + info.name_of_scaner_class + delim_proc_body(del_postact);
-// // //
-// // //     info.aut_impl_fin_proc[Delimiter_aut] = "void " + info.name_of_scaner_class +
-// // //                                        R"~(::delimiter_final_proc(){
-// // //     )~" + indent + del_postact +
-// // //     R"~(
-// // //     token.code = delim_jump_table[state].code;
-// // //     )~" + "\n}";
+    result           = fmt::format(delim_aut_final_proc_fmt,
+                                   info.names.name_of_scaner_class,
+                                   del_postact.empty() ? del_postact :
+                                                         (del_postact + '\n'));
     return result;
 }
 
@@ -123,50 +142,9 @@ Automaton_constructing_info
     result.proc_ptr         = fmt::format(delimiter_aut_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);
     result.proc_impl        = delimiter_automaton_impl(info, et, scope);
-//     result.proc_impl        = fmt::format(unknown_aut_proc_impl_fmt,
-//                                           info.names.name_of_scaner_class);
     result.final_proc_proto = delimiter_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(delimiter_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);
-//     result.final_proc_impl  = fmt::format(unknown_aut_proc_impl_fmt,
-//                                           info.names.name_of_scaner_class);
+    result.final_proc_impl  = delimiter_automaton_impl_finals(info);
     return result;
 }
-
-// // // #include "../include/generate_delim_automaton_impl.h"
-
-// // // #include "../include/attributed_char_trie.h"
-// // // #include "../include/errors_and_tries.h"
-// // // #include "../include/idx_to_string.h"
-
-// // // #include "../include/add_category.h"
-// // // #include "../include/get_act_repres.h"
-// // // #include "../include/indent.h"
-// // // #include <string>
-// // // #include <vector>
-// // //
-// // // static const std::string del_jump_table_name           = "delim_jump_table";
-// // // static const std::string del_init_table_name           = "init_table_for_delimiters";
-// // // static const std::string delim_proc_body_              =
-// // // static std::string delim_proc_body(const std::string& s){
-// // //     std::string result;
-// // //     result = delim_proc_body_;
-// // //     if(s.empty()){
-// // //         result += "\n" + indent + "return t;\n}";
-// // //     }else{
-// // //         result += "\n" +
-// // //                   indent + "if(!t){\n" +
-// // //                   double_indent + s + "\n" +
-// // //                   indent + "}\n" +
-// // //                   indent + "return t;\n}";
-// // //     }
-// // //     return result;
-// // // }
-// // //
-// // // void generate_delim_automaton_impl(Info_for_constructing& info){
-// // //     /* This function builds an implementation of the automaton
-// // //      * that processes delimiters. */
-// // //     if(!belongs(Delimiter_aut, info.set_of_used_automata)){
-// // //         return;
-// // //     }
-// // // }

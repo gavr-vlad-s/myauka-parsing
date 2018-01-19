@@ -46,6 +46,7 @@ namespace info_for_constructing{
     };
 
     using Delimiter_with_code = std::pair<std::u32string, size_t>;
+
     struct Info{
         size_t                           set_of_used_automata = 0;
         Regexps                          regexps;
@@ -57,6 +58,7 @@ namespace info_for_constructing{
         Trie_for_set_of_char32           char_cat;
         std::map<size_t, std::string>    category_name;
         bool                             newline_is_lexem     = false;
+        bool                             needed_Elem          = false;
         std::string                      keywords_postaction;
         std::string                      delimiters_postaction;
 //         std::vector<Delimiter_with_code> delims;

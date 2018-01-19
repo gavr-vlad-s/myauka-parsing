@@ -9,11 +9,12 @@
 
 #ifndef JUMP_TABLE_STRING_REPRES_H
 #define JUMP_TABLE_STRING_REPRES_H
+#include <string>
 #include "../include/attributed_char_trie.h"
 #include "../include/info_for_constructing.h"
-#include <string>
-std::string jump_table_string_repres(info_for_constructing::Info& info,
-                                     const Jumps_and_inits& ji,
-                                     const std::string&     table_name,
-                                     const std::string&     init_table_name);
+
+std::string jump_table_string_repres(const info_for_constructing::Info& info,
+                                     const Jumps_and_inits&             ji,
+                                     const std::string&                 table_name,
+                                     const std::string&                 init_table_name);
 #endif

@@ -28,6 +28,7 @@
 #include "../include/verify_collected_data.h"
 #include "../include/aux_files_generate.h"
 #include "../include/collected_data_to_info.h"
+#include "../include/belongs.h"
 
 static const char32_t* none_string    = U"None";
 static const char32_t* unknown_string = U"Unknown";
@@ -420,6 +421,11 @@ void Main_parser::compile()
         impl_->parsers_.et_.ec->print();
         return;
     }
+
+    if(belongs(Comment_aut, impl_->data_.aut_data_.set_of_used_automata)){
+        add_fictive_delimiters();
+    }
+
     auto info = collected_data_to_info(impl_->data_,
                                        impl_->parsers_.et_,
                                        impl_->parsers_.scope_);
@@ -427,6 +433,76 @@ void Main_parser::compile()
 }
 
 Main_parser::~Main_parser() = default;
+
+void Main_parser::add_new_lexem_code(size_t idx)
+{
+    auto s = impl_->parsers_.scope_->idsc.find(idx);
+    Id_attributes iattr;
+    if(s != impl_->parsers_.scope_->idsc.end()){
+        printf("Line %zu repeatedly defines the identifier ",
+               impl_->parsers_.msc_->lexem_begin_line_number());
+        impl_->parsers_.et_.ids_trie->print(idx); printf("\n");
+        impl_->parsers_.et_.ec -> increment_number_of_errors();
+    }else{
+        iattr.kind = Code_of_lexem;
+        iattr.code = ++(impl_->data_.last_code_val_);
+        impl_->parsers_.scope_->idsc[idx] = iattr;
+        impl_->data_.codes_.push_back(idx);
+    }
+}
+
+void Main_parser::add_fictive_delimiter(const std::u32string& dcode, size_t drepres_idx)
+{
+    size_t d_idx = impl_->parsers_.et_.ids_trie->insert(dcode);
+    add_new_lexem_code(d_idx);
+    add_new_string(drepres_idx, d_idx);
+}
+
+void Main_parser::add_new_string(const size_t idx, const size_t code_){
+/* The first argument of this function is the index of the string literal representing
+ * the keyword or delimiter in the prefix tree of string literals, and the second
+ * argument is the index of the identifier that is the corresponding token code in the
+ * prefix tree of identifiers. */
+    auto s = impl_->parsers_.scope_->strsc.find(idx);
+    Str_attributes sattr;
+    Id_attributes  iattr;
+    if(s != impl_->parsers_.scope_->strsc.end()){
+        printf("Line %zu repeatedly defines the delimiter ",
+               impl_->parsers_.msc_->lexem_begin_line_number());
+        impl_->parsers_.et_.strs_trie->print(idx); printf("\n");
+        impl_->parsers_.et_.ec -> increment_number_of_errors();
+    }else{
+        auto s1 = impl_->parsers_.scope_->idsc.find(code_);
+        if(s1 == impl_->parsers_.scope_->idsc.end()){
+            iattr.kind = Code_of_lexem;
+            iattr.code = ++(impl_->data_.last_code_val_);
+            impl_->parsers_.scope_->idsc[idx] = iattr;
+            impl_->data_.codes_.push_back(idx);
+        }else{
+            iattr = s1->second;
+        }
+    sattr.kind  = Delimiter_repres;
+    sattr.code  = iattr.code;
+    impl_->parsers_.scope_->strsc[idx] = sattr;
+    impl_->data_.del_repres_.push_back(idx);
+    }
+}
+
+void Main_parser::add_fictive_delimiters()
+{
+    if(impl_->data_.indeces_.mark_of_single_lined){
+        add_fictive_delimiter(U"SINGLE_LINED_COMMENT_MARK",
+                              impl_->data_.indeces_.mark_of_single_lined);
+    }
+    if(impl_->data_.indeces_.mark_of_multilined_begin){
+        add_fictive_delimiter(U"MULTI_LINED_COMMENT_MARK",
+                              impl_->data_.indeces_.mark_of_multilined_begin);
+    }
+    if(impl_->data_.indeces_.mark_of_multilined_end){
+        add_fictive_delimiter(U"MULTI_LINED_COMMENT_END",
+                              impl_->data_.indeces_.mark_of_multilined_end);
+    }
+}
 
 int Main_parser::get_number_of_errors() const
 {

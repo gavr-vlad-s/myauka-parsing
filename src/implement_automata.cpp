@@ -32,6 +32,6 @@ void implement_automata(info_for_constructing::Info&  info,
     }
     if(belongs(String_aut, info.set_of_used_automata)){
         auto sa          = implement_string_automaton(info, et, scope);
-        info.automata_info.push_back(da);
+        info.automata_info.push_back(sa);
     }
 }

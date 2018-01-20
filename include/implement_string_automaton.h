@@ -16,7 +16,7 @@
 #include "../include/scope.h"
 
 Automaton_constructing_info
-    implement_delimiter_automaton(info_for_constructing::Info&  info,
-                                  const Errors_and_tries&       et,
-                                  const std::shared_ptr<Scope>& scope);
+    implement_string_automaton(info_for_constructing::Info&  info,
+                               const Errors_and_tries&       et,
+                               const std::shared_ptr<Scope>& scope);
 #endif

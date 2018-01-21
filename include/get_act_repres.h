@@ -23,7 +23,7 @@
  *
  *  \return          string representation of action
  */
-std::string get_act_repres(const Errors_and_tries& et,
+std::string get_act_repres(const Errors_and_tries&       et,
                            const std::shared_ptr<Scope>& scope,
-                           size_t                  i);
+                           size_t                        i);
 #endif

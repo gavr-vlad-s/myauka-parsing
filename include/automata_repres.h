@@ -10,7 +10,11 @@
 #define AUTOMATA_REPRES_H
 #include <string>
 #include "../include/info_for_constructing.h"
-#include "../include/groupped_dfa.h"
+#include "../include/trie_for_set.h"
+
+enum class Regexp_kind{
+    Ident, Number, String
+};
 
 struct Str_data_for_automaton {
     std::string automata_name;
@@ -21,6 +25,8 @@ struct Str_data_for_automaton {
     std::string final_states_set_name;
 };
 
-std::string automata_repres(Info_for_constructing& info, const G_DFA& aut,
-                            const Str_data_for_automaton& f);
+std::string automata_repres(info_for_constructing::Info&     info,
+                            const Str_data_for_automaton&    f,
+                            const Trie_for_set_of_char32ptr& sets,
+                            const Regexp_kind                kind);
 #endif

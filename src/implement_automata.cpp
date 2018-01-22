@@ -18,10 +18,10 @@
 #include "../include/implement_string_automaton.h"
 
 using namespace info_for_constructing;
-void implement_automata(info_for_constructing::Info&  info,
-                        const Collected_data&         d,
-                        const Errors_and_tries&       et,
-                        const std::shared_ptr<Scope>& scope)
+void implement_automata(info_for_constructing::Info&     info,
+                        const Trie_for_set_of_char32ptr& sets_from_automata,
+                        const Errors_and_tries&          et,
+                        const std::shared_ptr<Scope>&    scope)
 {
     info.automata_info.push_back(implement_none_automaton(info));
     info.automata_info.push_back(implement_unknown_automaton(info));
@@ -31,7 +31,8 @@ void implement_automata(info_for_constructing::Info&  info,
         info.needed_Elem = true;
     }
     if(belongs(String_aut, info.set_of_used_automata)){
-        auto sa          = implement_string_automaton(info, et, scope);
+        auto sa          = implement_string_automaton(info,               et,
+                                                      sets_from_automata, scope);
         info.automata_info.push_back(sa);
     }
 }

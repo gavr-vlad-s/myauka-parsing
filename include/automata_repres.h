@@ -9,6 +9,8 @@
 #ifndef AUTOMATA_REPRES_H
 #define AUTOMATA_REPRES_H
 #include <string>
+#include "../include/scope.h"
+#include "../include/errors_and_tries.h"
 #include "../include/info_for_constructing.h"
 #include "../include/trie_for_set.h"
 
@@ -28,5 +30,7 @@ struct Str_data_for_automaton {
 std::string automata_repres(info_for_constructing::Info&     info,
                             const Str_data_for_automaton&    f,
                             const Trie_for_set_of_char32ptr& sets,
+                            const Errors_and_tries&          et,
+                            const std::shared_ptr<Scope>&    scope,
                             const Regexp_kind                kind);
 #endif

@@ -10,6 +10,7 @@
 #include <string>
 #include "../include/implement_string_automaton.h"
 #include "../include/format.h"
+#include "../include/automata_repres.h"
 
 using namespace std::string_literals;
 
@@ -18,6 +19,17 @@ static const std::string string_aut_proc_proto          = "bool string_proc()"s;
 static const std::string string_aut_proc_ptr_fmt        = "&{0}::string_proc"s;
 static const std::string string_aut_final_proc_proto    = "void string_final_proc()"s;
 static const std::string string_aut_final_proc_ptr_fmt  = "&{0}::string_final_proc"s;
+
+// struct Str_data_for_automaton {
+//     std::string automata_name;
+//     std::string proc_name;
+//     std::string category_name_prefix;
+//     std::string diagnostic_msg;
+//     std::string final_actions;
+//     std::string final_states_set_name;
+// };
+//
+
 // static const std::string delimiter_aut_proc_impl_fmt       =
 //     R"~(bool {0}::delimiter_proc(){{
 //     bool t = false;
@@ -60,16 +72,37 @@ static const std::string string_aut_final_proc_ptr_fmt  = "&{0}::string_final_pr
 //     {1}token.code = delim_jump_table[state].code;
 // }})~"s;
 
+// std::string automata_repres(info_for_constructing::Info&     info,
+//                             const Str_data_for_automaton&    f,
+//                             const Trie_for_set_of_char32ptr& sets,
+//                             const Errors_and_tries&          et,
+//                             const std::shared_ptr<Scope>&    scope,
+//                             const Regexp_kind                kind);
+
+
 Automaton_constructing_info
-    implement_string_automaton(info_for_constructing::Info&  info,
-                               const Errors_and_tries&       et,
-                               const std::shared_ptr<Scope>& scope)
+    implement_string_automaton(info_for_constructing::Info&     info,
+                               const Errors_and_tries&          et,
+                               const Trie_for_set_of_char32ptr& sets_from_automata,
+                               const std::shared_ptr<Scope>&    scope)
 {
     Automaton_constructing_info result;
+    Str_data_for_automaton      f;
+    f.automata_name         = "A_string"s;
+    f.proc_name             = "string_proc";
+    f.category_name_prefix  = "STRING";
+    f.diagnostic_msg        = "At line %zu unexpectedly ended a string literal.\n";
+    f.final_states_set_name = "final_states_for_strings";
     result.name             = string_aut_name;
     result.proc_proto       = string_aut_proc_proto;
     result.proc_ptr         = fmt::format(string_aut_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);
+    result.proc_impl        = automata_repres(info,
+                                              f,
+                                              sets_from_automata,
+                                              et,
+                                              scope,
+                                              Regexp_kind::String);
 //     result.proc_impl        = delimiter_automaton_impl(info, et, scope);
     result.final_proc_proto = string_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(string_aut_final_proc_ptr_fmt,

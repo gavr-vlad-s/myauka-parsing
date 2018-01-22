@@ -8,13 +8,23 @@
 */
 
 #include <string>
+#include <list>
 #include "../include/automata_repres.h"
 #include "../include/groupped_dfa.h"
 #include "../include/groupped_dfa_by_regexp.h"
 #include "../include/format.h"
 #include "../include/join.h"
+#include "../include/get_act_repres.h"
+#include "../include/add_category.h"
+#include "../include/str_repres_for_set_of_size_t_const.h"
 
 using namespace std::string_literals;
+
+static constexpr size_t indent_width = 4;
+
+static const std::string quadruple_indent = std::string(indent_width, ' ');
+
+static const std::string newline_str = "\n"s;
 
 static const std::string aut_proc_template_fmt =
     R"~(bool {0}::{1}(){{
@@ -38,10 +48,46 @@ static const std::string aut_proc_template_fmt =
 
 static const std::string case_fmt =
 R"~(        case {0}:
-                {1};
+{1}
                 break;)~"s;
 
 static const std::string else_str = " else "s;
+
+static const std::string all_chars_with_action_fmt =
+R"~({0};
+                state = {1};
+                there_is_jump = true;)~"s;
+
+static const std::string all_chars_without_action_fmt =
+R"~(state = {0};
+                there_is_jump = true;)~"s;
+
+static const std::string set_of_cs_fmt =
+R"~(if(belongs({0}, char_categories)){{
+                    {1}
+                    state         = {2};
+                    there_is_jump = true;
+                }})~"s;
+
+static const std::string set_of_cs_fmt_without_action =
+R"~(if(belongs({0}, char_categories)){{
+                    state         = {2};
+                    there_is_jump = true;
+                }})~"s;
+
+static const std::string set_of_cs_complement_fmt =
+R"~(if(!belongs({0}, char_categories)){{
+                    {1}
+                    state         = {2};
+                    there_is_jump = true;
+                }})~"s;
+
+static const std::string set_of_cs_complement_fmt_without_action =
+R"~(if(!belongs({0}, char_categories)){{
+                    state         = {2};
+                    there_is_jump = true;
+                }})~"s;
+
 
 // struct Str_data_for_automaton {
 //     std::string automata_name;
@@ -79,56 +125,74 @@ static std::string automata_repres_case_j(info_for_constructing::Info&  info,
                                           const Category&               cat,
                                           const DFA_state_with_action&  swa,
                                           const Str_data_for_automaton& f,
+                                          const Errors_and_tries&       et,
+                                          const std::shared_ptr<Scope>& scope,
                                           size_t& last_category_suffix)
 {
     std::string result;
-//     auto        temp   = get_act_repres(info, swa.action_idx);
-//     switch(cat.kind){
-//         case All_chars:
-//             if(!temp.empty()){
-//                 result = temp + "\n" +
-//                          triple_indent + "state = " + std::to_string(swa.st) + ";\n" +
-//                          triple_indent + "there_is_jump = true;\n";
-//             }else{
-//                 result = "state = " +  std::to_string(swa.st) + ";\n" +
-//                          triple_indent + "there_is_jump = true;\n";
-//             }
-//             break;
-//         case Not_single_quote:
-//             result = R"~( else if(ch != U'\''){)~" "\n" + qindent_string(temp) +
-//                      quadruple_indent + "state = " + std::to_string(swa.st) + ";\n" +
-//                      quadruple_indent + "there_is_jump = true;\n" +
-//                      triple_indent + "}\n";
-//             break;
-//         case Not_double_quote:
-//             result = R"~( else if(ch != U'\"'){)~" "\n" + qindent_string(temp) +
-//                      quadruple_indent + "state = " + std::to_string(swa.st) + ";\n" +
-//                      quadruple_indent + "there_is_jump = true;\n" +
-//                      triple_indent + "}\n";
-//             break;
-//         case Set_of_cs:
-//             {
-//                 std::string default_cat_name = f.category_name_prefix +
-//                                                std::to_string(last_category_suffix);
-//                 auto result_cat = add_category(info, cat.s, default_cat_name);
-//                 if(result_cat.first){
-//                     // if there was not the category
-//                     last_category_suffix++;
-//                 }
-//                 result = " else if(belongs(" + result_cat.second +
-//                          ", char_categories)){\n" + qindent_string(temp) +
-//                          quadruple_indent + "state = " + std::to_string(swa.st) + ";\n" +
-//                          quadruple_indent + "there_is_jump = true;\n" +
-//                          triple_indent + "}\n";
-//             }
-//             break;
-//     }
+    auto        temp   = get_act_repres(et, scope, swa.action_idx);
+    switch(cat.kind){
+        case Category_kind::All_chars:
+            if(!temp.empty()){
+                result = fmt::format(all_chars_with_action_fmt,
+                                     temp,
+                                     std::to_string(swa.st));
+            }else{
+                result = fmt::format(all_chars_without_action_fmt,
+                                     std::to_string(swa.st));
+            }
+            break;
+        case Category_kind::Set_of_cs:
+            {
+                auto default_cat_name = f.category_name_prefix +
+                                        std::to_string(last_category_suffix);
+                auto result_cat       = add_category(info, cat.s, default_cat_name);
+                if(result_cat.first){
+                    // if there was not the category
+                    last_category_suffix++;
+                }
+                if(!temp.empty()){
+                    result = fmt::format(set_of_cs_fmt,
+                                         result_cat.second,
+                                         temp,
+                                         std::to_string(swa.st));
+                }else{
+                    result = fmt::format(set_of_cs_fmt_without_action,
+                                         result_cat.second,
+                                         std::to_string(swa.st));
+                }
+            }
+            break;
+        case Category_kind::Set_of_cs_complement:
+            {
+                auto default_cat_name = f.category_name_prefix +
+                                        std::to_string(last_category_suffix);
+                auto result_cat       = add_category(info, cat.s, default_cat_name);
+                if(result_cat.first){
+                    // if there was not the category
+                    last_category_suffix++;
+                }
+                if(!temp.empty()){
+                    result = fmt::format(set_of_cs_complement_fmt,
+                                         result_cat.second,
+                                         temp,
+                                         std::to_string(swa.st));
+                }else{
+                    result = fmt::format(set_of_cs_complement_fmt_without_action,
+                                         result_cat.second,
+                                         std::to_string(swa.st));
+                }
+            }
+            break;
+    }
     return result;
 }
 
 static std::string automata_repres_case(info_for_constructing::Info&    info,
                                         const   G_DFA_state_jumps&      m,
                                         const   Str_data_for_automaton& f,
+                                        const   Errors_and_tries&       et,
+                                        const   std::shared_ptr<Scope>& scope,
                                         size_t  counter,
                                         size_t& last_category_suffix)
 {
@@ -141,36 +205,42 @@ static std::string automata_repres_case(info_for_constructing::Info&    info,
     for(const auto& j : m){
         auto cat  = j.first;
         auto swa  = j.second;
-        auto temp = automata_repres_case_j(info, cat, swa, f, last_category_suffix);
+        auto temp = automata_repres_case_j(info, cat,   swa,                 f,
+                                           et,   scope, last_category_suffix);
         ifs.push_back(temp);
     }
     result = fmt::format(case_fmt,
-                        std::to_string(counter),
-                        join(ifs.begin(), ifs.end(), else_str));
+                         std::to_string(counter),
+                         quadruple_indent + join(ifs.begin(), ifs.end(), else_str));
     return result;
 }
 
 static std::string automata_repres_switch(info_for_constructing::Info&  info,
                                           const G_DFA&                  aut,
-                                          const Str_data_for_automaton& f)
+                                          const Str_data_for_automaton& f,
+                                          const Errors_and_tries&       et,
+                                          const std::shared_ptr<Scope>& scope)
 {
-    std::string result;
-//     result                      = indent + "switch(state){\n";
-    size_t counter              = 0;
-    size_t last_category_suffix = 0;
+    std::string            result;
+    size_t                 counter              = 0;
+    size_t                 last_category_suffix = 0;
+    std::list<std::string> cases;
     for(const auto& m : aut.jumps){
-        result += automata_repres_case(info, m, f, counter,last_category_suffix);
+        auto current_case = automata_repres_case(info,                m,     f,
+                                                 et,                  scope, counter,
+                                                 last_category_suffix);
+        cases.push_back(current_case);
         counter++;
     }
-//     result += double_indent + "default:\n" +
-//               triple_indent + ";\n" +
-//               indent        + "}\n";
+    result = join(cases.begin(), cases.end(), newline_str);
     return result;
 }
 
 std::string automata_repres(info_for_constructing::Info&     info,
                             const Str_data_for_automaton&    f,
                             const Trie_for_set_of_char32ptr& sets,
+                            const Errors_and_tries&          et,
+                            const std::shared_ptr<Scope>&    scope,
                             const Regexp_kind                kind)
 {
     std::string result;
@@ -181,14 +251,16 @@ std::string automata_repres(info_for_constructing::Info&     info,
                                                 f.final_states_set_name,
                                                 f.diagnostic_msg,
                                                 f.final_actions);
-    std::string switch_for_proc   = automata_repres_switch(info, gdfa, f);
+    std::string switch_for_proc   = automata_repres_switch(info, gdfa, f, et, scope);
     std::string proc_impl         = fmt::format(proc_def_template, switch_for_proc);
+    std::string final_states_set  = str_repres_for_set_of_size_t_const(gdfa.final_states,
+                                                                       f.final_states_set_name);
+    result = final_states_set + "\n\n" + proc_impl;
     return result;
 }
 
 // #include "../include/add_category.h"
 // #include "../include/get_act_repres.h"
-// #include "../include/str_repres_for_set_of_size_t_const.h"
 // #include "../include/indent.h"
 //
 // static const std::string sp_else_sp = " else ";

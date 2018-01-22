@@ -14,9 +14,11 @@
 #include "../include/automaton_constructing_info.h"
 #include "../include/errors_and_tries.h"
 #include "../include/scope.h"
+#include "../include/trie_for_set.h"
 
 Automaton_constructing_info
-    implement_string_automaton(info_for_constructing::Info&  info,
-                               const Errors_and_tries&       et,
-                               const std::shared_ptr<Scope>& scope);
+    implement_string_automaton(info_for_constructing::Info&     info,
+                               const Errors_and_tries&          et,
+                               const Trie_for_set_of_char32ptr& sets_from_automata,
+                               const std::shared_ptr<Scope>&    scope);
 #endif

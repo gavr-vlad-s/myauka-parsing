@@ -41,8 +41,8 @@ static const std::string aut_proc_template_fmt =
             printf("{3}", loc->current_line);
             en->increment_number_of_errors();
         }}
+        {4}
     }}
-    {4}
     return t;
 }})~"s;
 

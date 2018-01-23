@@ -74,9 +74,14 @@ static Names data_to_names(const Collected_data&   d,
     return result;
 }
 
-info_for_constructing::Info collected_data_to_info(const Collected_data&         d,
-                                                   const Errors_and_tries&       et,
-                                                   const std::shared_ptr<Scope>& scope)
+//         std::string                      identifier_preactions;
+//         std::string                      identifier_postactions;
+
+
+info_for_constructing::Info collected_data_to_info(const Collected_data&            d,
+                                                   const Errors_and_tries&          et,
+                                                   const Trie_for_set_of_char32ptr& sets_from_automata,
+                                                   const std::shared_ptr<Scope>&    scope)
 {
     info_for_constructing::Info result;
 
@@ -99,8 +104,15 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&        
                                                      d.postactions_.keywords_postaction);
     result.delimiters_postaction     = idx_to_string(strst,
                                                      d.postactions_.delimiters_postaction);
-
-    implement_automata(result, d, et, scope);
+    result.string_preactions         = idx_to_string(strst,
+                                                     d.acts_for_strings_.init_acts);
+    result.string_postactions        = idx_to_string(strst,
+                                                     d.acts_for_strings_.fin_acts);
+    result.number_preactions         = idx_to_string(strst,
+                                                     d.acts_for_numbers_.init_acts);
+    result.number_postactions        = idx_to_string(strst,
+                                                     d.acts_for_numbers_.fin_acts);
+    implement_automata(result, sets_from_automata, et, scope);
 
     return result;
 }

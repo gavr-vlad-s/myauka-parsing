@@ -428,6 +428,7 @@ void Main_parser::compile()
 
     auto info = collected_data_to_info(impl_->data_,
                                        impl_->parsers_.et_,
+                                       impl_->parsers_.char32_sets_,
                                        impl_->parsers_.scope_);
     aux_files_generate();
 }

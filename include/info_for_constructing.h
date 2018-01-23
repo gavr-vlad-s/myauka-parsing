@@ -61,6 +61,12 @@ namespace info_for_constructing{
         bool                             needed_Elem          = false;
         std::string                      keywords_postaction;
         std::string                      delimiters_postaction;
+        std::string                      string_preactions;
+        std::string                      string_postactions;
+        std::string                      number_preactions;
+        std::string                      number_postactions;
+        std::string                      identifier_preactions;
+        std::string                      identifier_postactions;
 //         std::vector<Delimiter_with_code> delims;
 //         Codes_info  codes_info;
     };

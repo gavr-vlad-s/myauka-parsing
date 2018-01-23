@@ -14,7 +14,10 @@
 #include "../include/info_for_constructing.h"
 #include "../include/errors_and_tries.h"
 #include "../include/scope.h"
+#include "../include/trie_for_set.h"
+
 info_for_constructing::Info collected_data_to_info(const Collected_data&         d,
                                                    const Errors_and_tries&       et,
+                                                   const Trie_for_set_of_char32ptr& sets_from_automata,
                                                    const std::shared_ptr<Scope>& scope);
 #endif

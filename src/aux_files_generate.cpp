@@ -24,10 +24,10 @@ static const char* abstract_scaner_h =
 template<typename Lexem_type>
 class Abstract_scaner{
 public:
-    Abstract_scaner<Lexem_type>() = default;
+    Abstract_scaner<Lexem_type>()      = default;
     Abstract_scaner(Location_ptr location, const Errors_and_tries& et);
     Abstract_scaner(const Abstract_scaner<Lexem_type>& orig) = default;
-    virtual ~Abstract_scaner() = default;
+    virtual ~Abstract_scaner()         = default;
     /*  Function back() return the current lexem into the input stream. */
     void back();
     /* Function current_lexem() returns information about current lexem,

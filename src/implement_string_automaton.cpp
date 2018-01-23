@@ -11,14 +11,36 @@
 #include "../include/implement_string_automaton.h"
 #include "../include/format.h"
 #include "../include/automata_repres.h"
+#include "../include/add_category.h"
+#include "../include/first_chars.h"
 
 using namespace std::string_literals;
 
-static const std::string string_aut_name                = "A_string"s;
-static const std::string string_aut_proc_proto          = "bool string_proc()"s;
-static const std::string string_aut_proc_ptr_fmt        = "&{0}::string_proc"s;
-static const std::string string_aut_final_proc_proto    = "void string_final_proc()"s;
-static const std::string string_aut_final_proc_ptr_fmt  = "&{0}::string_final_proc"s;
+static const std::string string_aut_name                  = "A_string"s;
+static const std::string string_aut_proc_proto            = "bool string_proc()"s;
+static const std::string string_aut_proc_ptr_fmt          = "&{0}::string_proc"s;
+static const std::string string_aut_final_proc_proto      = "void string_final_proc()"s;
+static const std::string string_aut_final_proc_ptr_fmt    = "&{0}::string_final_proc"s;
+
+static const std::string string_begin_cat_name_by_default = "STRING_BEGIN"s;
+
+static const std::string add_string_to_table              =
+    "\n        token.string_index = strs->insert(buffer);"s;
+
+static const std::string string_if_fmt = R"~(
+    if(belongs({0}, char_categories)){{
+        (loc->pcurrent_char)--;
+        {1}
+        automaton = A_string;
+        state     = -1;
+        return t;
+    }}
+)~"s;
+
+static const std::string string_aut_final_proc_fmt      =
+    R"~(void {0}::string_final_proc(){{
+    {1}token.string_index = strs->insert(buffer);
+}})~"s;
 
 // struct Str_data_for_automaton {
 //     std::string automata_name;
@@ -80,6 +102,17 @@ static const std::string string_aut_final_proc_ptr_fmt  = "&{0}::string_final_pr
 //                             const Regexp_kind                kind);
 
 
+static std::string string_automaton_impl_finals(const info_for_constructing::Info&  info)
+{
+    std::string result;
+    auto str_postact = info.string_postactions;
+    result           = fmt::format(string_aut_final_proc_fmt,
+                                   info.names.name_of_scaner_class,
+                                   str_postact.empty() ? str_postact :
+                                                         (str_postact + '\n'));
+    return result;
+}
+
 Automaton_constructing_info
     implement_string_automaton(info_for_constructing::Info&     info,
                                const Errors_and_tries&          et,
@@ -88,25 +121,36 @@ Automaton_constructing_info
 {
     Automaton_constructing_info result;
     Str_data_for_automaton      f;
-    f.automata_name         = "A_string"s;
-    f.proc_name             = "string_proc";
-    f.category_name_prefix  = "STRING";
-    f.diagnostic_msg        = "At line %zu unexpectedly ended a string literal.\n";
-    f.final_states_set_name = "final_states_for_strings";
-    result.name             = string_aut_name;
-    result.proc_proto       = string_aut_proc_proto;
-    result.proc_ptr         = fmt::format(string_aut_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.proc_impl        = automata_repres(info,
-                                              f,
-                                              sets_from_automata,
-                                              et,
-                                              scope,
-                                              Regexp_kind::String);
-//     result.proc_impl        = delimiter_automaton_impl(info, et, scope);
+    auto begin_chars                  = first_chars(info.regexps.strings,
+                                                       sets_from_automata);
+    auto cat_res                      = add_category(info,
+                                                        begin_chars.s,
+                                                        string_begin_cat_name_by_default);
+    std::string string_begin_cat_name = cat_res.second;
+    auto string_if                    = fmt::format(string_if_fmt,
+                                                    string_begin_cat_name,
+                                                    info.string_preactions);
+    info.ifs_of_start_procs.push_back(string_if);
+
+    f.automata_name                   = "A_string"s;
+    f.proc_name                       = "string_proc";
+    f.category_name_prefix            = "STRING";
+    f.diagnostic_msg                  = "At line %zu unexpectedly ended a string literal.\n";
+    f.final_states_set_name           = "final_states_for_strings";
+    f.final_actions                   = info.string_postactions + add_string_to_table;
+    result.name                       = string_aut_name;
+    result.proc_proto                 = string_aut_proc_proto;
+    result.proc_ptr                   = fmt::format(string_aut_proc_ptr_fmt,
+                                                    info.names.name_of_scaner_class);
+    result.proc_impl                  = automata_repres(info,
+                                                        f,
+                                                        sets_from_automata,
+                                                        et,
+                                                        scope,
+                                                        Regexp_kind::String);
     result.final_proc_proto = string_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(string_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);
-//     result.final_proc_impl  = delimiter_automaton_impl_finals(info);
+    result.final_proc_impl  = string_automaton_impl_finals(info);
     return result;
 }

@@ -20,7 +20,7 @@
  * \result
  *      true, if str matches the regular expression on which the deterministic
  *            finite automaton was built
- *      else, otherwise
+ *      false, otherwise
  */
 bool match(const G_DFA& gdfa, const std::u32string& str);
 
@@ -30,7 +30,7 @@ bool match(const G_DFA& gdfa, const std::u32string& str);
  * \result
  *      true, if any string of strs matches the regular expression on
  *            which the deterministic finite automaton was built
- *      else, otherwise
+ *      false, otherwise
  */
 template<class InputIt>
 bool match_all(const G_DFA& gdfa, InputIt first, InputIt last)

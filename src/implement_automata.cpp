@@ -16,6 +16,7 @@
 #include "../include/implement_delimiter_automaton.h"
 #include "../include/scope.h"
 #include "../include/implement_string_automaton.h"
+#include "../include/implement_number_automaton.h"
 
 using namespace info_for_constructing;
 void implement_automata(info_for_constructing::Info&     info,
@@ -34,5 +35,10 @@ void implement_automata(info_for_constructing::Info&     info,
         auto sa          = implement_string_automaton(info,               et,
                                                       sets_from_automata, scope);
         info.automata_info.push_back(sa);
+    }
+    if(belongs(Number_aut, info.set_of_used_automata)){
+        auto na          = implement_number_automaton(info,               et,
+                                                      sets_from_automata, scope);
+        info.automata_info.push_back(na);
     }
 }

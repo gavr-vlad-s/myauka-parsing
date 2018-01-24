@@ -52,47 +52,6 @@ static const std::string string_aut_final_proc_fmt      =
 // };
 //
 
-// static const std::string delimiter_aut_proc_impl_fmt       =
-//     R"~(bool {0}::delimiter_proc(){{
-//     bool t = false;
-//     if(-1 == state){{
-//         state = get_init_state(ch, init_table_for_delimiters,
-//                                sizeof(init_table_for_delimiters)/sizeof(State_for_char));
-//         token.code = delim_jump_table[state].code;
-//         t = true;
-//         return t;
-//     }}
-//     Elem elem  = delim_jump_table[state];
-//     token.code = elem.code;
-//     int y = search_char(ch, elem.symbols);
-//     if(y != THERE_IS_NO_CHAR){{
-//         state = elem.first_state + y; t = true;
-//     }}
-//     {1}return t;
-// )~"s;
-//
-// static const std::string postaction_fmt                    =
-//     R"~(    if(!t){{
-//         {0};
-//     }})~"s;
-//
-// static const std::string del_begin_cat_name_by_default     = "DELIMITER_BEGIN"s;
-// static const std::string delim_if_fmt = R"~(
-//     if(belongs({0}, char_categories)){{
-//         (loc->pcurrent_char)--;
-//         automaton = A_delimiter;
-//         state = -1;
-//         return t;
-//     }}
-// )~"s;
-//
-// static const std::string del_jump_table_name           = "delim_jump_table"s;
-// static const std::string del_init_table_name           = "init_table_for_delimiters"s;
-//
-// static const std::string delim_aut_final_proc_fmt      =
-//     R"~(void {0}::delimiter_final_proc(){{
-//     {1}token.code = delim_jump_table[state].code;
-// }})~"s;
 
 // std::string automata_repres(info_for_constructing::Info&     info,
 //                             const Str_data_for_automaton&    f,
@@ -122,10 +81,10 @@ Automaton_constructing_info
     Automaton_constructing_info result;
     Str_data_for_automaton      f;
     auto begin_chars                  = first_chars(info.regexps.strings,
-                                                       sets_from_automata);
+                                                    sets_from_automata);
     auto cat_res                      = add_category(info,
-                                                        begin_chars.s,
-                                                        string_begin_cat_name_by_default);
+                                                     begin_chars.s,
+                                                     string_begin_cat_name_by_default);
     std::string string_begin_cat_name = cat_res.second;
     auto string_if                    = fmt::format(string_if_fmt,
                                                     string_begin_cat_name,

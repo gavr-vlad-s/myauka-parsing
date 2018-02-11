@@ -33,7 +33,7 @@ static const std::string table_template_fmt      =
 }};)~"s;
 
 static const std::string table_entry_fmt         =
-    R"~({{const_cast<char32_t*>(U"{0}"), {1}, {2}}})~"s;
+    R"~({{const_cast<char32_t*>(U"{0}"), {3}::{1}, {2}}})~"s;
 
 
 // std::string generate_Elem(const std::string& s)
@@ -67,7 +67,8 @@ static std::string table_gen(const info_for_constructing::Info& info,
         std::string entry = fmt::format(table_entry_fmt,
                                         u32string_to_utf8(j.jump_chars),
                                         info.lexem_codes_names[j.code],
-                                        std::to_string(j.first_state));
+                                        std::to_string(j.first_state),
+                                        info.names.codes_type_name);
         del_jumps.push_back(entry);
     }
     result = fmt::format(table_template_fmt,

@@ -38,5 +38,4 @@ bool match_all(const G_DFA& gdfa, InputIt first, InputIt last)
     return std::all_of(first, last,
                        [&gdfa](const std::u32string& s){return match(gdfa, s);});
 }
-
 #endif

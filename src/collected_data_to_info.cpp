@@ -98,6 +98,7 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&        
     result.category_name[sp_indeces] = spaces_name;
 
     result.del_repres                = d.del_repres_;
+    result.kw_repres                 = d.kw_repres_;
 
     auto& strst                      = et.strs_trie;
     result.keywords_postaction       = idx_to_string(strst,

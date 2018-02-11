@@ -68,7 +68,7 @@ static std::string string_automaton_impl_finals(const info_for_constructing::Inf
     result           = fmt::format(string_aut_final_proc_fmt,
                                    info.names.name_of_scaner_class,
                                    str_postact.empty() ? str_postact :
-                                                         (str_postact + '\n'));
+                                                         (str_postact + "\n    "));
     return result;
 }
 

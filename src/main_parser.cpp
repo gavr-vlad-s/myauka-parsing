@@ -408,7 +408,8 @@ void Main_parser::Main_parser_data::parse()
 }
 
 Main_parser::Main_parser(const Location_ptr& loc) :
-    impl_(std::make_unique<Main_parser_data>(loc)) {
+    impl_(std::make_unique<Main_parser_data>(loc))
+{
 #ifdef DEBUG_MODE
         printf("impl_ pointer: %p\n", impl_.get());
 #endif

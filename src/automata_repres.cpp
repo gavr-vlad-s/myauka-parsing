@@ -88,7 +88,6 @@ R"~(if(!belongs({0}, char_categories)){{
                     there_is_jump = true;
                 }})~"s;
 
-
 // struct Str_data_for_automaton {
 //     std::string automata_name;
 //     std::string proc_name;
@@ -97,8 +96,6 @@ R"~(if(!belongs({0}, char_categories)){{
 //     std::string final_actions;
 //     std::string final_states_set_name;
 // };
-
-
 
 static G_DFA info_to_automaton(const info_for_constructing::Info& info,
                                const Trie_for_set_of_char32ptr&   sets,
@@ -258,47 +255,3 @@ std::string automata_repres(info_for_constructing::Info&     info,
     result = final_states_set + "\n\n" + proc_impl;
     return result;
 }
-
-// #include "../include/add_category.h"
-// #include "../include/get_act_repres.h"
-// #include "../include/indent.h"
-//
-// static const std::string sp_else_sp = " else ";
-//
-// static std::string check_there_is_jump(const Str_data_for_automaton& f){
-//     std::string result;
-//     result = indent        + "if(!there_is_jump){\n" +
-//              double_indent + "t = false;\n"          +
-//              double_indent + "if(!is_elem(state, "   + f.final_states_set_name + ")){\n" +
-//              triple_indent + "printf(\"" + f.diagnostic_msg + "\", loc->current_line);\n" +
-//              triple_indent + "en->increment_number_of_errors();\n" + double_indent + "}\n";
-//     auto temp = f.final_actions;
-//     if(!temp.empty()){
-//         result += double_indent + temp + "\n";
-//     }
-//     result += indent + "}\n";
-//     return result;
-// }
-//
-// static std::string qindent_string(const std::string& s){
-//     std::string result;
-//     if(!s.empty()){
-//         result = quadruple_indent + s + "\n";
-//     }
-//     return result;
-// }
-// // // std::string automata_repres(Info_for_constructing& info, const G_DFA& aut,
-// // //                             const Str_data_for_automaton& f)
-// // // {
-// // //     std::string result;
-// // //
-// // //     std::string proc_def = "bool " + info.name_of_scaner_class + "::" + f.proc_name + "{\n" +
-// // //                            indent + "bool t             = true;\n" +
-// // //                            indent + "bool there_is_jump = false;\n";
-// // //     proc_def += automata_repres_switch(info, aut, f) + "\n";
-// // //     proc_def += check_there_is_jump(f) + "\n";
-// // //     proc_def += indent + "return t;\n}";
-// // //     result = str_repres_for_set_of_size_t_const(aut.final_states, f.final_states_set_name) +
-// // //              "\n\n" + proc_def;
-// // //     return result;
-// // // }

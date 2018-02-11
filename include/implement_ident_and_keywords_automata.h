@@ -20,9 +20,8 @@ using INFO           = info_for_constructing::Info;
 using Trie_for_chars = Trie_for_set_of_char32ptr;
 using Ptr_to_scope   = std::shared_ptr<Scope>;
 
-Automaton_constructing_info
-    implement_ident_and_keywords_automata(INFO&                   info,
-                                          const Errors_and_tries& et,
-                                          const Trie_for_chars&   sets_from_automata,
-                                          const Ptr_to_scope&     scope);
+void implement_ident_and_keywords_automata(INFO&                   info,
+                                           const Errors_and_tries& et,
+                                           const Trie_for_chars&   sets_from_automata,
+                                           const Ptr_to_scope&     scope);
 #endif

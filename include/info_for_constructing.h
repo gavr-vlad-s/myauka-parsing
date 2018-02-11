@@ -55,6 +55,7 @@ namespace info_for_constructing{
         Automata_info                    automata_info;
         std::vector<std::string>         ifs_of_start_procs;
         std::vector<size_t>              del_repres;
+        std::vector<size_t>              kw_repres;
         Trie_for_set_of_char32           char_cat;
         std::map<size_t, std::string>    category_name;
         bool                             newline_is_lexem     = false;

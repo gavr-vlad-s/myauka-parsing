@@ -65,6 +65,46 @@ static const std::string delim_aut_final_proc_fmt      =
     {1}token.code = delim_jump_table[state].code;
 }})~"s;
 
+// struct Delims_info{
+//     std::set<char32_t>          first_chars;
+//     std::vector<std::u32string> str_repres;
+// };
+//
+// static Delims_info delims_first_chars(const info_for_constructing::Info&  info,
+//                                              const Errors_and_tries&             et)
+// {
+//     Delims_info result;
+//     for(size_t del_idx : info.del_repres){
+//         auto delimiter = et.strs_trie->get_string(del_idx);
+//         delimiter_strings.push_back(delimiter);
+//         result.first_chars.insert(delimiter[0]);
+//     }
+//     return result;
+// }
+
+static std::vector<std::u32string>
+    delims_str_repres(const info_for_constructing::Info&  info,
+                      const Errors_and_tries&             et)
+{
+    std::vector<std::u32string> result;
+    for(size_t del_idx : info.del_repres){
+        auto delimiter = et.strs_trie->get_string(del_idx);
+        result.push_back(delimiter);
+    }
+    return result;
+}
+
+template<class InputIterator>
+std::set<char32_t> first_elems(InputIterator first, InputIterator last)
+{
+    std::set<char32_t> result;
+    for(auto it = first; it != last; ++it){
+        char32_t elem = (*it)[0];
+        result.insert(elem);
+    }
+    return result;
+}
+
 static std::string delimiter_automaton_impl(info_for_constructing::Info&  info,
                                             const Errors_and_tries&       et,
                                             const std::shared_ptr<Scope>& scope)
@@ -74,13 +114,10 @@ static std::string delimiter_automaton_impl(info_for_constructing::Info&  info,
                                                            characters from which
                                                            the delimiters can begin. */
     Attributed_char_trie        atrie;
-    std::vector<std::u32string> delimiter_strings;
+    auto                        delimiter_strings = delims_str_repres(info, et);
+    first_chars_for_delims = first_elems(delimiter_strings.begin(),
+                                         delimiter_strings.end());
 
-    for(size_t del_idx : info.del_repres){
-        auto delimiter = et.strs_trie->get_string(del_idx);
-        delimiter_strings.push_back(delimiter);
-        first_chars_for_delims.insert(delimiter[0]);
-    }
     size_t counter = 0;
     for(size_t del_idx : info.del_repres){
         Attributed_cstring atrib_cstr;

@@ -17,6 +17,7 @@
 #include "../include/scope.h"
 #include "../include/implement_string_automaton.h"
 #include "../include/implement_number_automaton.h"
+#include "../include/implement_ident_and_keywords_automata.h"
 
 using namespace info_for_constructing;
 void implement_automata(info_for_constructing::Info&     info,
@@ -26,6 +27,8 @@ void implement_automata(info_for_constructing::Info&     info,
 {
     info.automata_info.push_back(implement_none_automaton(info));
     info.automata_info.push_back(implement_unknown_automaton(info));
+    implement_ident_and_keywords_automata(info,               et,
+                                          sets_from_automata, scope);
     if(belongs(Delimiter_aut, info.set_of_used_automata)){
         auto da          = implement_delimiter_automaton(info, et, scope);
         info.automata_info.push_back(da);

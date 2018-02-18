@@ -61,10 +61,10 @@ bool match(const G_DFA& gdfa, const std::u32string& str)
     size_t i             = 0;
     size_t len           = str.size();
     for( ; i < len; ++i){
-        char32_t c = str[i];
-        auto& js   = jumps[current_state];
-        auto  pred = [c](auto& a)->bool{return is_category_elem(c, a.first);};
-        auto  it   = std::find_if(js.begin(), js.end(), pred);
+        char32_t c    = str[i];
+        auto&    js   = jumps[current_state];
+        auto     pred = [c](auto& a)->bool{return is_category_elem(c, a.first);};
+        auto     it   = std::find_if(js.begin(), js.end(), pred);
         if(it != js.end()){
             current_state = (it->second).st;
         }else{
@@ -74,16 +74,31 @@ bool match(const G_DFA& gdfa, const std::u32string& str)
     return is_elem(current_state, final_states);
 }
 
-// /**
-//  * \param [in] gdfa  a deterministic finite automaton with grouped transitions
-//  * \param [in] strs  matched strings
-//  * \result
-//  *      true, if any string of the vector strs matches the regular expression on
-//  *            which the deterministic finite automaton was built
-//  *      false, otherwise
-//  */
-// bool match_all(const G_DFA& gdfa, const std::vector<std::u32string>& strs)
-// {
-//     return std::all_of(strs.begin(), strs.end(),
-//                        [&gdfa](const std::u32string& s){return match(gdfa, s);});
-// }
+Category last_jump_category(const G_DFA& gdfa, const std::u32string& str)
+{
+    Category result;
+    using operations_with_sets::is_elem;
+
+    size_t begin_state  = gdfa.begin_state;
+    auto&  jumps        = gdfa.jumps;
+
+    size_t current_state = begin_state;
+
+    size_t i             = 0;
+    size_t len           = str.size();
+    for( ; i < len; ++i){
+        char32_t c    = str[i];
+        auto&    js   = jumps[current_state];
+        auto     pred = [c](auto& a)->bool{return is_category_elem(c, a.first);};
+        auto     it   = std::find_if(js.begin(), js.end(), pred);
+        if(it != js.end()){
+            current_state = (it->second).st;
+        }else{
+            break;
+        }
+    }
+    for(const auto& j : jumps[current_state]){
+        result = result + j.first;
+    }
+    return result;
+}

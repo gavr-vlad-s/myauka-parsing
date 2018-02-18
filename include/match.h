@@ -24,6 +24,8 @@
  */
 bool match(const G_DFA& gdfa, const std::u32string& str);
 
+Category last_jump_category(const G_DFA& gdfa, const std::u32string& str);
+
 /**
  * \param [in] gdfa  a deterministic finite automaton with grouped transitions
  * \param [in] strs  matched strings

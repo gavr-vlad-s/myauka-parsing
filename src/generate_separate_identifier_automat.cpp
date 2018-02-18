@@ -35,6 +35,7 @@ static const std::string ident_if_fmt = R"~(
 )~"s;
 
 static const std::string add_ident_to_table              =
+    "\n        token.code = {0};"
     "\n        token.ids = ids_trie->insert(buffer);"s;
 
 static const std::string ident_aut_final_proc_fmt        =
@@ -76,7 +77,8 @@ void generate_separate_identifier_automat(info_for_constructing::Info&     info,
     f.category_name_prefix            = "IDENTIFIER";
     f.diagnostic_msg                  = "At line %zu unexpectedly ended an identifier.\n";
     f.final_states_set_name           = "final_states_for_idents";
-    f.final_actions                   = info.identifier_postactions + add_ident_to_table;
+    f.final_actions                   = info.identifier_postactions +
+                                        fmt::format(add_ident_to_table, info.names.ident_name);
     result.name                       = ident_aut_name;
     result.proc_proto                 = ident_aut_proc_proto;
     result.proc_ptr                   = fmt::format(ident_aut_proc_ptr_fmt,

@@ -50,8 +50,10 @@ static const std::string keyword_aut_proc_impl_fmt         =
     int y = search_char(ch, elem.symbols);
     if(y != THERE_IS_NO_CHAR){{
         state = elem.first_state + y; t = true;
+    }}else{{
+        {1}
     }}
-    {1}return t;
+    return t;
 )~"s;
 
 static const std::string postaction_fmt                    =

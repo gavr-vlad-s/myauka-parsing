@@ -10,9 +10,10 @@
 #include <string>
 #include "../include/implement_number_automaton.h"
 #include "../include/format.h"
-#include "../include/automata_repres.h"
+// #include "../include/automata_repres.h"
 #include "../include/add_category.h"
 #include "../include/first_chars.h"
+#include "../include/automata_repres_builder.h"
 
 using namespace std::string_literals;
 
@@ -21,6 +22,8 @@ static const std::string number_aut_proc_proto            = "bool number_proc()"
 static const std::string number_aut_proc_ptr_fmt          = "&{0}::number_proc"s;
 static const std::string number_aut_final_proc_proto      = "void number_final_proc()"s;
 static const std::string number_aut_final_proc_ptr_fmt    = "&{0}::number_final_proc"s;
+static const std::string number_diagnostic_msg            =
+    "At line %zu unexpectedly ended a number literal.\n"s;
 
 static const std::string number_begin_cat_name_by_default = "NUMBER_BEGIN"s;
 
@@ -91,22 +94,25 @@ Automaton_constructing_info
                                                     info.number_preactions);
     info.ifs_of_start_procs.push_back(string_if);
 
-    f.automata_name                   = "A_number"s;
+    f.automata_name                   = number_aut_name;
     f.proc_name                       = "number_proc";
     f.category_name_prefix            = "NUMBER";
-    f.diagnostic_msg                  = "At line %zu unexpectedly ended a number literal.\n";
+    f.diagnostic_msg                  = number_diagnostic_msg;
     f.final_states_set_name           = "final_states_for_numbers";
     f.final_actions                   = info.number_postactions;
     result.name                       = number_aut_name;
     result.proc_proto                 = number_aut_proc_proto;
     result.proc_ptr                   = fmt::format(number_aut_proc_ptr_fmt,
                                                     info.names.name_of_scaner_class);
-    result.proc_impl                  = automata_repres(info,
-                                                        f,
-                                                        sets_from_automata,
-                                                        et,
-                                                        scope,
-                                                        Regexp_kind::Number);
+    Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
+    result.proc_impl                  = repres_builder.build_repres(info,
+                                                                    info.regexps.numbers);
+//     result.proc_impl                  = automata_repres(info,
+//                                                         f,
+//                                                         sets_from_automata,
+//                                                         et,
+//                                                         scope,
+//                                                         Regexp_kind::Number);
     result.final_proc_proto = number_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(number_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);

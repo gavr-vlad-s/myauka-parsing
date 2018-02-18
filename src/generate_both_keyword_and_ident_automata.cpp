@@ -56,16 +56,30 @@ static const std::string ident_if_fmt = R"~(
     }}
 )~"s;
 
-static std::string ident_automaton_impl_finals(const info_for_constructing::Info&  info)
-{
-    std::string result;
-//     auto ident_postact = info.identifier_preactions;
-//     result             = fmt::format(ident_aut_final_proc_fmt,
-//                                      info.names.name_of_scaner_class,
-//                                      ident_postact.empty() ? ident_postact :
-//                                                              (ident_postact + '\n'));
-    return result;
-}
+// static std::string ident_automaton_impl_finals(const info_for_constructing::Info&  info)
+// {
+//     std::string result;
+// //     auto ident_postact = info.identifier_preactions;
+// //     result             = fmt::format(ident_aut_final_proc_fmt,
+// //                                      info.names.name_of_scaner_class,
+// //                                      ident_postact.empty() ? ident_postact :
+// //                                                              (ident_postact + '\n'));
+//     return result;
+// }
+
+static void generate_if_all_keywords_are_idents(info_for_constructing::Info&       info,
+                                                const Errors_and_tries&            et,
+                                                const Trie_for_set_of_char32ptr&   sets_from_automata,
+                                                const std::shared_ptr<Scope>&      scope,
+                                                const std::vector<std::u32string>& keyword_strings)
+{}
+
+static void generate_if_some_keywords_are_not_idents(info_for_constructing::Info&       info,
+                                                     const Errors_and_tries&            et,
+                                                     const Trie_for_set_of_char32ptr&   sets_from_automata,
+                                                     const std::shared_ptr<Scope>&      scope,
+                                                     const std::vector<std::u32string>& keyword_strings)
+{}
 
 void generate_both_keyword_and_ident_automata(info_for_constructing::Info&     info,
                                               const Errors_and_tries&          et,
@@ -84,46 +98,50 @@ void generate_both_keyword_and_ident_automata(info_for_constructing::Info&     i
                                                   keyword_strings.begin(),
                                                   keyword_strings.end());
     if(keywords_are_identifiers){
+        generate_if_all_keywords_are_idents(info,  et,              sets_from_automata,
+                                            scope, keyword_strings);
     }else{
-        auto keywords_regexp = u32strings_to_commands(keyword_strings.begin(),
-                                                      keyword_strings.end());
-        auto summary         = regexp1_or_regexp2(id_regexp, keywords_regexp);
-        info.regexps.idents  = summary;
-        Str_data_for_automaton      f;
-        auto begin_chars                  = first_chars(info.regexps.idents,
-                                                        sets_from_automata);
-        auto cat_res                      = add_category(info,
-                                                        begin_chars.s,
-                                                        idkeyw_begin_cat_name_by_default);
-        std::string string_begin_cat_name = cat_res.second;
-        auto ident_if                     = fmt::format(ident_if_fmt,
-                                                        string_begin_cat_name,
-                                                        info.identifier_preactions);
-
-        Automaton_constructing_info result;
-        info.ifs_of_start_procs.push_back(ident_if);
-
-        f.automata_name                   = ident_aut_name;
-        f.proc_name                       = "ident_proc"s;
-        f.category_name_prefix            = "IDENTIFIER";
-        f.diagnostic_msg                  = unexpected_end;
-        f.final_states_set_name           = "final_states_for_idents";
-//         f.final_actions                   = info.identifier_postactions + add_ident_to_table;
-        result.name                       = ident_aut_name;
-        result.proc_proto                 = ident_aut_proc_proto;
-        result.proc_ptr                   = fmt::format(ident_aut_proc_ptr_fmt,
-                                                        info.names.name_of_scaner_class);
-        result.proc_impl                  = automata_repres(info,
-                                                            f,
-                                                            sets_from_automata,
-                                                            et,
-                                                            scope,
-                                                            Regexp_kind::Ident);
-        result.final_proc_proto = ident_aut_final_proc_proto;
-        result.final_proc_ptr   = fmt::format(ident_aut_final_proc_ptr_fmt,
-                                            info.names.name_of_scaner_class);
-        result.final_proc_impl  = ident_automaton_impl_finals(info);
-        info.automata_info.push_back(result);
+        generate_if_some_keywords_are_not_idents(info,  et,              sets_from_automata,
+                                                 scope, keyword_strings);
+//         auto keywords_regexp = u32strings_to_commands(keyword_strings.begin(),
+//                                                       keyword_strings.end());
+//         auto summary         = regexp1_or_regexp2(id_regexp, keywords_regexp);
+//         info.regexps.idents  = summary;
+//         Str_data_for_automaton      f;
+//         auto begin_chars                  = first_chars(info.regexps.idents,
+//                                                         sets_from_automata);
+//         auto cat_res                      = add_category(info,
+//                                                         begin_chars.s,
+//                                                         idkeyw_begin_cat_name_by_default);
+//         std::string string_begin_cat_name = cat_res.second;
+//         auto ident_if                     = fmt::format(ident_if_fmt,
+//                                                         string_begin_cat_name,
+//                                                         info.identifier_preactions);
+//
+//         Automaton_constructing_info result;
+//         info.ifs_of_start_procs.push_back(ident_if);
+//
+//         f.automata_name                   = ident_aut_name;
+//         f.proc_name                       = "ident_proc"s;
+//         f.category_name_prefix            = "IDENTIFIER";
+//         f.diagnostic_msg                  = unexpected_end;
+//         f.final_states_set_name           = "final_states_for_idents";
+// //         f.final_actions                   = info.identifier_postactions + add_ident_to_table;
+//         result.name                       = ident_aut_name;
+//         result.proc_proto                 = ident_aut_proc_proto;
+//         result.proc_ptr                   = fmt::format(ident_aut_proc_ptr_fmt,
+//                                                         info.names.name_of_scaner_class);
+//         result.proc_impl                  = automata_repres(info,
+//                                                             f,
+//                                                             sets_from_automata,
+//                                                             et,
+//                                                             scope,
+//                                                             Regexp_kind::Ident);
+//         result.final_proc_proto = ident_aut_final_proc_proto;
+//         result.final_proc_ptr   = fmt::format(ident_aut_final_proc_ptr_fmt,
+//                                             info.names.name_of_scaner_class);
+//         result.final_proc_impl  = ident_automaton_impl_finals(info);
+//         info.automata_info.push_back(result);
     }
 }
 

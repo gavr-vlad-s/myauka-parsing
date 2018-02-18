@@ -10,9 +10,10 @@
 #include <string>
 #include "../include/implement_string_automaton.h"
 #include "../include/format.h"
-#include "../include/automata_repres.h"
+// #include "../include/automata_repres.h"
 #include "../include/add_category.h"
 #include "../include/first_chars.h"
+#include "../include/automata_repres_builder.h"
 
 using namespace std::string_literals;
 
@@ -21,6 +22,8 @@ static const std::string string_aut_proc_proto            = "bool string_proc()"
 static const std::string string_aut_proc_ptr_fmt          = "&{0}::string_proc"s;
 static const std::string string_aut_final_proc_proto      = "void string_final_proc()"s;
 static const std::string string_aut_final_proc_ptr_fmt    = "&{0}::string_final_proc"s;
+static const std::string string_diagnostic_msg            =
+    "At line %zu unexpectedly ended a string literal.\n"s;
 
 static const std::string string_begin_cat_name_by_default = "STRING_BEGIN"s;
 
@@ -91,22 +94,25 @@ Automaton_constructing_info
                                                     info.string_preactions);
     info.ifs_of_start_procs.push_back(string_if);
 
-    f.automata_name                   = "A_string"s;
+    f.automata_name                   = string_aut_name;
     f.proc_name                       = "string_proc";
     f.category_name_prefix            = "STRING";
-    f.diagnostic_msg                  = "At line %zu unexpectedly ended a string literal.\n";
+    f.diagnostic_msg                  = string_diagnostic_msg;
     f.final_states_set_name           = "final_states_for_strings";
     f.final_actions                   = info.string_postactions + add_string_to_table;
     result.name                       = string_aut_name;
     result.proc_proto                 = string_aut_proc_proto;
     result.proc_ptr                   = fmt::format(string_aut_proc_ptr_fmt,
                                                     info.names.name_of_scaner_class);
-    result.proc_impl                  = automata_repres(info,
-                                                        f,
-                                                        sets_from_automata,
-                                                        et,
-                                                        scope,
-                                                        Regexp_kind::String);
+    Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
+    result.proc_impl                  = repres_builder.build_repres(info,
+                                                                    info.regexps.strings);
+//     result.proc_impl                  = automata_repres(info,
+//                                                         f,
+//                                                         sets_from_automata,
+//                                                         et,
+//                                                         scope,
+//                                                         Regexp_kind::String);
     result.final_proc_proto = string_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(string_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);

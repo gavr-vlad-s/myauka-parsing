@@ -24,4 +24,26 @@ bool regexp_match(const Command_buffer&            buffer,
     grouped_DFA_by_regexp(gdfa, buffer, t);
     return match_all(gdfa, first, last);
 }
+
+struct Match_result{
+    bool is_all;
+    bool is_any;
+};
+
+template<class InputIt>
+Match_result match_regexp(const Command_buffer&            buffer,
+                          const Trie_for_set_of_char32ptr& t,
+                          InputIt                          first,
+                          InputIt                          last)
+{
+    Match_result result = {true, false};
+    G_DFA gdfa;
+    grouped_DFA_by_regexp(gdfa, buffer, t);
+    for(auto it = first; it != last; ++it){
+        bool t = match(gdfa, *it);
+        result.is_all = result.is_all && t;
+        result.is_any = result.is_any || t;
+    }
+    return result;
+}
 #endif

@@ -10,9 +10,10 @@
 #include <string>
 #include "../include/generate_separate_identifier_automat.h"
 #include "../include/format.h"
-#include "../include/automata_repres.h"
+// #include "../include/automata_repres.h"
 #include "../include/add_category.h"
 #include "../include/first_chars.h"
+#include "../include/automata_repres_builder.h"
 
 using namespace std::string_literals;
 
@@ -80,12 +81,15 @@ void generate_separate_identifier_automat(info_for_constructing::Info&     info,
     result.proc_proto                 = ident_aut_proc_proto;
     result.proc_ptr                   = fmt::format(ident_aut_proc_ptr_fmt,
                                                     info.names.name_of_scaner_class);
-    result.proc_impl                  = automata_repres(info,
-                                                        f,
-                                                        sets_from_automata,
-                                                        et,
-                                                        scope,
-                                                        Regexp_kind::Ident);
+    Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
+    result.proc_impl                  = repres_builder.build_repres(info,
+                                                                    info.regexps.idents);
+//     result.proc_impl                  = automata_repres(info,
+//                                                         f,
+//                                                         sets_from_automata,
+//                                                         et,
+//                                                         scope,
+//                                                         Regexp_kind::Ident);
     result.final_proc_proto = ident_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(ident_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);

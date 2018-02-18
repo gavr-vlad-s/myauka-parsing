@@ -44,11 +44,11 @@ public:
                              const Command_buffer&        regexp);
 
 private:
-    size_t                          last_category_suffix_;
-    Str_data_for_automaton          f_;
-    const Trie_for_set_of_char32ptr sets_;
-    const Errors_and_tries          et_;
-    const std::shared_ptr<Scope>    scope_;
+    size_t                    last_category_suffix_;
+    Str_data_for_automaton    f_;
+    Trie_for_set_of_char32ptr sets_;
+    Errors_and_tries          et_;
+    std::shared_ptr<Scope>    scope_;
 
     std::string automata_repres_switch(info_for_constructing::Info& info,
                                        const G_DFA&                 aut);

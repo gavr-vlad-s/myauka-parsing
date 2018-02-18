@@ -66,9 +66,9 @@ void generate_separate_identifier_automat(info_for_constructing::Info&     info,
     auto cat_res                      = add_category(info,
                                                      begin_chars.s,
                                                      ident_begin_cat_name_by_default);
-    std::string string_begin_cat_name = cat_res.second;
-    auto ident_if                    = fmt::format(ident_if_fmt,
-                                                    string_begin_cat_name,
+    std::string ident_begin_cat_name  = cat_res.second;
+    auto ident_if                     = fmt::format(ident_if_fmt,
+                                                    ident_begin_cat_name,
                                                     info.identifier_preactions);
     info.ifs_of_start_procs.push_back(ident_if);
 
@@ -86,12 +86,6 @@ void generate_separate_identifier_automat(info_for_constructing::Info&     info,
     Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
     result.proc_impl                  = repres_builder.build_repres(info,
                                                                     info.regexps.idents);
-//     result.proc_impl                  = automata_repres(info,
-//                                                         f,
-//                                                         sets_from_automata,
-//                                                         et,
-//                                                         scope,
-//                                                         Regexp_kind::Ident);
     result.final_proc_proto = ident_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(ident_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);

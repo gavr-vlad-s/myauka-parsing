@@ -18,6 +18,7 @@
 #include "../include/first_chars.h"
 #include "../include/operations_with_sets.h"
 #include "../include/jump_table_string_repres.h"
+#include "../include/automata_repres_builder.h"
 
 using namespace std::string_literals;
 using operations_with_sets::operator-;
@@ -25,8 +26,8 @@ using operations_with_sets::operator-;
 static const std::string ident_aut_name                  = "A_ident"s;
 static const std::string ident_aut_proc_proto            = "bool ident_proc()"s;
 static const std::string ident_aut_proc_ptr_fmt          = "&{0}::ident_proc"s;
-// static const std::string ident_aut_final_proc_proto      = "void ident_final_proc()"s;
-// static const std::string ident_aut_final_proc_ptr_fmt    = "&{0}::ident_final_proc"s;
+static const std::string ident_aut_final_proc_proto      = "void ident_final_proc()"s;
+static const std::string ident_aut_final_proc_ptr_fmt    = "&{0}::ident_final_proc"s;
 
 static const std::string keyword_aut_name                   = "A_keyword"s;
 static const std::string keyword_aut_proc_proto             = "bool keyword_proc()"s;
@@ -86,6 +87,25 @@ static const std::string keyword_aut_final_proc_fmt      =
     {1}token.code = keyword_jump_table[state].code;
 }})~"s;
 
+static const std::string ident_if_fmt = R"~(
+    if(belongs({0}, char_categories)){{
+        (loc->pcurrent_char)--;
+        {1}
+        automaton = A_ident;
+        state     = -1;
+        return t;
+    }}
+)~"s;
+
+static const std::string add_ident_to_table              =
+    "\n        token.code = {0};"
+    "\n        token.ids = ids_trie->insert(buffer);"s;
+
+static const std::string ident_aut_final_proc_fmt        =
+    R"~(void {0}::string_final_proc(){{
+    {1}token.ident_index = ids->insert(buffer);
+}})~"s;
+
 static std::string keyword_automaton_impl_finals(const info_for_constructing::Info&  info)
 {
     std::string result;
@@ -96,12 +116,15 @@ static std::string keyword_automaton_impl_finals(const info_for_constructing::In
                                                          (keyword_postact + '\n'));
     return result;
 }
-// //
-// // void generate_separate_keywords_automaton(info_for_constructing::Info&  info,
-// //                                           const Errors_and_tries&       et,
-// //                                           const std::shared_ptr<Scope>& scope)
-// // {
-// // }
+
+std::string add_category_wrapper(info_for_constructing::Info& info,
+                                 const std::set<char32_t>&    s,
+                                 const std::string&           default_name)
+{
+    auto cat_res = add_category(info, s, default_name);
+    auto result  = cat_res.second;
+    return result;
+}
 
 struct Id_with_keyw_builder::Impl{
 public:
@@ -114,6 +137,7 @@ public:
     ~Impl()           = default;
     Impl(const Impl&) = default;
 
+    void all_keywords_are_idents_case(info_for_constructing::Info& info);
     std::string keyword_automaton_impl(info_for_constructing::Info&  info);
     void build_keyword_strings(const info_for_constructing::Info&  info);
     Match_result check_keywords(Command_buffer& regexp);
@@ -214,10 +238,9 @@ std::string Id_with_keyw_builder::Impl::
     auto jmps = keywords_jumps(info);
     /* Now we need to add the desired text to the implementation of the start automaton
      * and generate a function that handles the delimiters. */
-    auto cat_res                         = add_category(info,
-                                                        first_chars_for_keywords,
-                                                        keyword_begin_cat_name_by_default);
-    std::string keyword_begin_cat_name = cat_res.second;
+    auto keyword_begin_cat_name          = add_category_wrapper(info,
+                                                                first_chars_for_keywords,
+                                                                keyword_begin_cat_name_by_default);
     auto keyword_if                      = fmt::format(keyword_if_fmt,
                                                        keyword_begin_cat_name);
     info.ifs_of_start_procs.push_back(keyword_if);
@@ -230,14 +253,9 @@ std::string Id_with_keyw_builder::Impl::
                                                       jmps,
                                                       keyw_jump_table_name,
                                                       keyword_init_table_name);
-    auto cat_res_id                      = add_category(info,
-                                                        idents_first_chars_whithout_keyws_first_chars_,
-                                                        ident_begin_cat_name_by_default);
-    std::string ident_begin_cat_name = cat_res_id.second;
-    auto cat_res_after_keywords          = add_category(info,
-                                                        symbols_after_keywords.s,
-                                                        after_keywords_cat_name_by_default);
-    std::string after_keywords_cat_name = cat_res_after_keywords.second;
+    auto after_keywords_cat_name          = add_category_wrapper(info,
+                                                                 symbols_after_keywords.s,
+                                                                 after_keywords_cat_name_by_default);
     result = jump_table_repres +
              fmt::format(keyword_aut_proc_impl_fmt,
                          info.names.name_of_scaner_class,
@@ -247,29 +265,61 @@ std::string Id_with_keyw_builder::Impl::
     return result;
 }
 
-void Id_with_keyw_builder::all_keywords_are_idents_case(info_for_constructing::Info& info)
+static std::string ident_automaton_impl_finals(const info_for_constructing::Info&  info)
+{
+    std::string result;
+    auto ident_postact = info.identifier_preactions;
+    result             = fmt::format(ident_aut_final_proc_fmt,
+                                     info.names.name_of_scaner_class,
+                                     ident_postact.empty() ? ident_postact :
+                                                             (ident_postact + '\n'));
+    return result;
+}
+
+void Id_with_keyw_builder::Impl::
+    all_keywords_are_idents_case(info_for_constructing::Info& info)
 {
     Automaton_constructing_info result;
-    result.name             = keyword_aut_name;
-    result.proc_proto       = keyword_aut_proc_proto;
-    result.proc_ptr         = fmt::format(keyword_aut_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.proc_impl        = impl_->keyword_automaton_impl(info);
-    result.final_proc_proto = keyword_aut_final_proc_proto;
-    result.final_proc_ptr   = fmt::format(keyword_aut_final_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.final_proc_impl  = keyword_automaton_impl_finals(info);
+    result.name               = keyword_aut_name;
+    result.proc_proto         = keyword_aut_proc_proto;
+    result.proc_ptr           = fmt::format(keyword_aut_proc_ptr_fmt,
+                                            info.names.name_of_scaner_class);
+    result.proc_impl          = keyword_automaton_impl(info);
+    result.final_proc_proto   = keyword_aut_final_proc_proto;
+    result.final_proc_ptr     = fmt::format(keyword_aut_final_proc_ptr_fmt,
+                                            info.names.name_of_scaner_class);
+    result.final_proc_impl    = keyword_automaton_impl_finals(info);
     info.automata_info.push_back(result);
-    /* Далее должно быть добавление автомата обработки идентификаторов */
-    result.name             = ident_aut_name;
-    result.proc_proto       = ident_aut_proc_proto;
-    result.proc_ptr         = fmt::format(ident_aut_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-//     result.proc_impl        = impl_->keyword_automaton_impl(info);
-//     result.final_proc_proto = keyword_aut_final_proc_proto;
-//     result.final_proc_ptr   = fmt::format(keyword_aut_final_proc_ptr_fmt,
-//                                           info.names.name_of_scaner_class);
-//     result.final_proc_impl  = keyword_automaton_impl_finals(info);
+
+    /* Next we add a idetifier automaton. */
+    result.name               = ident_aut_name;
+    result.proc_proto         = ident_aut_proc_proto;
+    result.proc_ptr           = fmt::format(ident_aut_proc_ptr_fmt,
+                                            info.names.name_of_scaner_class);
+    auto ident_begin_cat_name =
+        add_category_wrapper(info,
+                             idents_first_chars_whithout_keyws_first_chars_,
+                             ident_begin_cat_name_by_default);
+    result.final_proc_proto   = ident_aut_final_proc_proto;
+    auto ident_if             = fmt::format(ident_if_fmt,
+                                                    ident_begin_cat_name,
+                                                    info.identifier_preactions);
+    info.ifs_of_start_procs.push_back(ident_if);
+
+    Str_data_for_automaton      f;
+    f.automata_name           = ident_aut_name;
+    f.proc_name               = "ident_proc"s;
+    f.category_name_prefix    = "IDENTIFIER"s;
+    f.diagnostic_msg          = "At line %zu unexpectedly ended an identifier.\n";
+    f.final_states_set_name   = "final_states_for_idents";
+    f.final_actions           = info.identifier_postactions +
+                                fmt::format(add_ident_to_table, info.names.ident_name);
+    Automata_repres_builder repres_builder {f, sets_, et_, scope_};
+    result.proc_impl                  = repres_builder.build_repres(info,
+                                                                    info.regexps.idents);
+    result.final_proc_ptr     = fmt::format(ident_aut_final_proc_ptr_fmt,
+                                            info.names.name_of_scaner_class);
+    result.final_proc_impl    = ident_automaton_impl_finals(info);
     info.automata_info.push_back(result);
 }
 
@@ -307,7 +357,7 @@ void Id_with_keyw_builder::build(info_for_constructing::Info& info)
 
     auto t = impl_->check_keywords(id_regexp);
     if(t.is_all){
-        all_keywords_are_idents_case(info);
+        impl_->all_keywords_are_idents_case(info);
     }else if(t.is_any){
         some_keywords_are_not_idents_case(info);
     }else{

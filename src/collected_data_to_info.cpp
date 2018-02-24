@@ -113,6 +113,7 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&        
                                                      d.acts_for_numbers_.init_acts);
     result.number_postactions        = idx_to_string(strst,
                                                      d.acts_for_numbers_.fin_acts);
+    result.write_action_name_idx     = d.indeces_.write_action_name_idx;
     implement_automata(result, sets_from_automata, et, scope);
 
     return result;

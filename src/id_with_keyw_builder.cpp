@@ -19,6 +19,10 @@
 #include "../include/operations_with_sets.h"
 #include "../include/jump_table_string_repres.h"
 #include "../include/automata_repres_builder.h"
+#include "../include/generate_separate_identifier_automat.h"
+#include "../include/generate_separate_keywords_automaton.h"
+#include "../include/u32strings_to_commands.h"
+#include "../include/regexp1_or_regexp2.h"
 
 using namespace std::string_literals;
 using operations_with_sets::operator-;
@@ -37,6 +41,7 @@ static const std::string keyword_aut_final_proc_ptr_fmt     = "&{0}::keyword_fin
 
 static const std::string keyword_begin_cat_name_by_default  = "KEYWORD_BEGIN"s;
 static const std::string ident_begin_cat_name_by_default    = "IDENTIFIER_BEGIN"s;
+static const std::string idkeyw_begin_cat_name_by_default   = "IDKEYWORD_BEGIN"s;
 static const std::string after_keywords_cat_name_by_default = "AFTER_KEYWORDS"s;
 static const std::string keyword_if_fmt = R"~(
     if(belongs({0}, char_categories)){{
@@ -77,12 +82,12 @@ static const std::string keyword_aut_proc_impl_fmt          =
     return t;
 )~"s;
 
-static const std::string postaction_fmt                    =
+static const std::string postaction_fmt                     =
     R"~(    if(!t){{
         {0};
     }})~"s;
 
-static const std::string keyword_aut_final_proc_fmt      =
+static const std::string keyword_aut_final_proc_fmt         =
     R"~(void {0}::keyword_final_proc(){{
     {1}token.code = keyword_jump_table[state].code;
 }})~"s;
@@ -97,14 +102,32 @@ static const std::string ident_if_fmt = R"~(
     }}
 )~"s;
 
-static const std::string add_ident_to_table              =
+static const std::string add_ident_to_table                 =
     "\n        token.code = {0};"
     "\n        token.ids = ids_trie->insert(buffer);"s;
 
-static const std::string ident_aut_final_proc_fmt        =
+static const std::string ident_aut_final_proc_fmt           =
     R"~(void {0}::string_final_proc(){{
     {1}token.ident_index = ids->insert(buffer);
 }})~"s;
+
+static const std::string idkeyw_aut_name                    = "A_idkeyw"s;
+static const std::string idkeyw_aut_proc_proto              = "bool idkeyw_proc()"s;
+static const std::string idkeyw_aut_proc_ptr_fmt            = "&{0}::idkeyw_proc"s;
+static const std::string idkeyw_aut_final_proc_proto        = "void idkeyw_final_proc()"s;
+static const std::string idkeyw_aut_final_proc_ptr_fmt    = "&{0}::idkeyw_final_proc"s;
+static const std::string idkeyw_aut_diagnostic_msg          =
+    "At line %zu unexpectedly ended an identifier or a keyword.\n"s;
+
+static const std::string idkeyw_if_fmt = R"~(
+    if(belongs({0}, char_categories)){{
+        (loc->pcurrent_char)--;
+        {1}
+        automaton = A_idkeyw;
+        state     = -1;
+        return t;
+    }}
+)~"s;
 
 static std::string keyword_automaton_impl_finals(const info_for_constructing::Info&  info)
 {
@@ -138,10 +161,11 @@ public:
     Impl(const Impl&) = default;
 
     void all_keywords_are_idents_case(info_for_constructing::Info& info);
-    std::string keyword_automaton_impl(info_for_constructing::Info&  info);
-    void build_keyword_strings(const info_for_constructing::Info&  info);
-    Match_result check_keywords(Command_buffer& regexp);
-    std::set<char32_t> idents_first_chars_whithout_keyws_first_chars() const;
+    void not_all_keywords_are_idents_case(info_for_constructing::Info& info,
+                                          const Command_buffer&        regexp,
+                                          const Match_result&          t);
+    void build_keyword_strings(const info_for_constructing::Info& info);
+    Match_result check_keywords(const Command_buffer& regexp);
 private:
     Trie_for_set_of_char32ptr   sets_;
     Errors_and_tries            et_;
@@ -149,48 +173,14 @@ private:
     std::vector<std::u32string> keyword_strings_;
     std::set<char32_t>          idents_first_chars_whithout_keyws_first_chars_;
 
-    Jumps_and_inits keywords_jumps(const info_for_constructing::Info&  info);
+    using INFO = info_for_constructing::Info;
+    Jumps_and_inits keywords_jumps(const INFO& info);
+    std::string keyword_automaton_impl(INFO& info);
+    void generate_glued_identifier_and_keywords_automata(INFO&                 info,
+                                                         const Command_buffer& regexp);
+
+    std::string build_table_of_keywords(const INFO& info);
 };
-
-std::set<char32_t> Id_with_keyw_builder::Impl::
-    idents_first_chars_whithout_keyws_first_chars() const
-{
-    return idents_first_chars_whithout_keyws_first_chars_;
-}
-
-Match_result Id_with_keyw_builder::Impl::check_keywords(Command_buffer& regexp)
-{
-    auto result = match_regexp(regexp,                   sets_,
-                               keyword_strings_.begin(), keyword_strings_.end());
-    return result;
-}
-
-void Id_with_keyw_builder::Impl::
-    build_keyword_strings(const info_for_constructing::Info&  info)
-{
-    for(size_t kw_idx : info.kw_repres){
-        auto keyword = et_.strs_trie->get_string(kw_idx);
-        keyword_strings_.push_back(keyword);
-    }
-}
-
-Jumps_and_inits Id_with_keyw_builder::Impl::
-    keywords_jumps(const info_for_constructing::Info&  info)
-{
-    Attributed_char_trie        atrie;
-    size_t counter = 0;
-    for(size_t kw_idx : info.kw_repres){
-        Attributed_cstring atrib_cstr;
-        atrib_cstr.str       = const_cast<char32_t*>(keyword_strings_[counter].c_str());
-        atrib_cstr.attribute = (scope_->strsc[kw_idx]).code;
-        atrie.insert(attributed_cstring2string(atrib_cstr, 1));
-        counter++;
-    }
-
-    Jumps_and_inits jmps = atrie.jumps(); /* We built a sketch for
-                                             the transition table. */
-    return jmps;
-}
 
 template<class InputIterator>
 using elem_type = typename std::iterator_traits<InputIterator>::value_type::value_type;
@@ -222,6 +212,115 @@ auto all_elems(InputIterator first, InputIterator last) -> elems_set<InputIterat
         }
     }
     return result;
+}
+
+std::string Id_with_keyw_builder::Impl::build_table_of_keywords(const INFO& info)
+{
+    std::string result;
+    return result;
+}
+
+void Id_with_keyw_builder::Impl::
+    generate_glued_identifier_and_keywords_automata(INFO&                 info,
+                                                    const Command_buffer& regexp)
+{
+    Automaton_constructing_info result;
+    auto regexp_for_keywords =
+        u32strings_to_commands(keyword_strings_.begin(), keyword_strings_.end());
+    /* Next, we set action_name = write in all commands of keywords regexp, and
+     * glue an identifier regexp and keywords regexp. */
+    for(auto& com : regexp_for_keywords){
+        com.action_name = info.write_action_name_idx;
+    }
+    auto glued_regexp        = regexp1_or_regexp2(regexp, regexp_for_keywords);
+    auto idkeyw_first_chars  = first_chars(glued_regexp, sets_).s;
+
+    result.name               = idkeyw_aut_name;
+    result.proc_proto         = idkeyw_aut_proc_proto;
+    result.proc_ptr           = fmt::format(idkeyw_aut_proc_ptr_fmt,
+                                            info.names.name_of_scaner_class);
+
+    auto idkeyw_beg_cat_name = add_category_wrapper(info,
+                                                    idkeyw_first_chars,
+                                                    idkeyw_begin_cat_name_by_default);
+    auto idkeyw_if           = fmt::format(idkeyw_if_fmt,
+                                           idkeyw_beg_cat_name,
+                                           info.identifier_preactions);
+    info.ifs_of_start_procs.push_back(idkeyw_if);
+    result.final_proc_proto  = idkeyw_aut_final_proc_proto;
+
+    auto keywords_table      = build_table_of_keywords(info);
+
+//     f.final_actions           = info.identifier_postactions +
+//                                 fmt::format(add_ident_to_table, info.names.ident_name);
+//     result.final_proc_impl    = ident_automaton_impl_finals(info);
+    Str_data_for_automaton      f;
+    f.automata_name          = idkeyw_aut_name;
+    f.proc_name              = "idkeyw_proc"s;
+    f.category_name_prefix   = "IDKEYWORD"s;
+    f.diagnostic_msg         = idkeyw_aut_diagnostic_msg;
+    f.final_states_set_name  = "final_states_for_idkeywords"s;
+//     f.final_actions           = info.identifier_postactions +
+//                                 fmt::format(add_ident_to_table, info.names.ident_name);
+    Automata_repres_builder repres_builder {f, sets_, et_, scope_};
+    result.proc_impl         = repres_builder.build_repres(info,
+                                                           glued_regexp);
+    result.final_proc_ptr     = fmt::format(idkeyw_aut_final_proc_ptr_fmt,
+                                            info.names.name_of_scaner_class);
+//     result.final_proc_impl    = ident_automaton_impl_finals(info);
+    info.automata_info.push_back(result);
+}
+
+void Id_with_keyw_builder::Impl::
+    not_all_keywords_are_idents_case(info_for_constructing::Info& info,
+                                     const Command_buffer&        regexp,
+                                     const Match_result&          t)
+{
+    using operations_with_sets::operator*;
+    auto first_chars_for_keywords =
+        first_elems(keyword_strings_.begin(), keyword_strings_.end());
+    auto first_chars_for_idents   = first_chars(regexp, sets_).s;
+    auto common_chars             = first_chars_for_keywords * first_chars_for_idents;
+    if((!t.is_any) && common_chars.empty()){
+        generate_separate_identifier_automat(info, et_, sets_, scope_);
+        generate_separate_keywords_automaton(info, et_, scope_);
+    }else{
+        generate_glued_identifier_and_keywords_automata(info, regexp);
+    }
+}
+
+Match_result Id_with_keyw_builder::Impl::check_keywords(const Command_buffer& regexp)
+{
+    auto result = match_regexp(regexp,                   sets_,
+                               keyword_strings_.begin(), keyword_strings_.end());
+    return result;
+}
+
+void Id_with_keyw_builder::Impl::
+    build_keyword_strings(const info_for_constructing::Info&  info)
+{
+    for(size_t kw_idx : info.kw_repres){
+        auto keyword = et_.strs_trie->get_string(kw_idx);
+        keyword_strings_.push_back(keyword);
+    }
+}
+
+Jumps_and_inits Id_with_keyw_builder::Impl::
+    keywords_jumps(const info_for_constructing::Info&  info)
+{
+    Attributed_char_trie        atrie;
+    size_t counter = 0;
+    for(size_t kw_idx : info.kw_repres){
+        Attributed_cstring atrib_cstr;
+        atrib_cstr.str       = const_cast<char32_t*>(keyword_strings_[counter].c_str());
+        atrib_cstr.attribute = (scope_->strsc[kw_idx]).code;
+        atrie.insert(attributed_cstring2string(atrib_cstr, 1));
+        counter++;
+    }
+
+    Jumps_and_inits jmps = atrie.jumps(); /* We built a sketch for
+                                             the transition table. */
+    return jmps;
 }
 
 std::string Id_with_keyw_builder::Impl::
@@ -279,6 +378,7 @@ static std::string ident_automaton_impl_finals(const info_for_constructing::Info
 void Id_with_keyw_builder::Impl::
     all_keywords_are_idents_case(info_for_constructing::Info& info)
 {
+    info.needed_Elem          = true;
     Automaton_constructing_info result;
     result.name               = keyword_aut_name;
     result.proc_proto         = keyword_aut_proc_proto;
@@ -302,8 +402,8 @@ void Id_with_keyw_builder::Impl::
                              ident_begin_cat_name_by_default);
     result.final_proc_proto   = ident_aut_final_proc_proto;
     auto ident_if             = fmt::format(ident_if_fmt,
-                                                    ident_begin_cat_name,
-                                                    info.identifier_preactions);
+                                            ident_begin_cat_name,
+                                            info.identifier_preactions);
     info.ifs_of_start_procs.push_back(ident_if);
 
     Str_data_for_automaton      f;
@@ -350,18 +450,12 @@ void Id_with_keyw_builder::build(info_for_constructing::Info& info)
 {
     auto& id_regexp                = info.regexps.idents;
     impl_->build_keyword_strings(info);
-//     for(size_t kw_idx : info.kw_repres){
-//         auto keyword = impl_->et_.strs_trie->get_string(kw_idx);
-//         impl_->keyword_strings_.push_back(keyword);
-//     }
 
     auto t = impl_->check_keywords(id_regexp);
     if(t.is_all){
         impl_->all_keywords_are_idents_case(info);
-    }else if(t.is_any){
-        some_keywords_are_not_idents_case(info);
     }else{
-        all_keywords_are_not_idents_case(info);
+        impl_->not_all_keywords_are_idents_case(info, id_regexp, t);
     }
 }
 

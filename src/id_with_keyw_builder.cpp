@@ -26,6 +26,7 @@
 #include "../include/regexp1_or_regexp2.h"
 #include "../include/list_to_columns.h"
 #include "../include/char_conv.h"
+#include "../include/idx_to_string.h"
 
 using namespace std::string_literals;
 using operations_with_sets::operator-;
@@ -226,13 +227,6 @@ auto all_elems(InputIterator first, InputIterator last) -> elems_set<InputIterat
     return result;
 }
 
-Keywords_and_codes Id_with_keyw_builder::Impl::
-    build_keywords_with_codes(const INFO& info)
-{
-    Keywords_and_codes result;
-    return result;
-}
-
 static const std::string keyword_list_fmt = R"~(struct Keyword_list_elem{{
     std::u32string keyword;
     {0}            kw_code;
@@ -280,13 +274,6 @@ static ssize_t search_keyword(const std::u32string& finded_keyword)
 static const std::string kwlist_elem_fmt = R"~({{U"{0}", {1}}})~"s;
 static constexpr size_t  INDENT_WIDTH    = 4;
 
-// std::string keyword_list_elem(const std::string& codes_n){
-//     std::string result = "struct Keyword_list_elem{\n    std::u32string keyword;\n    " +
-//                          codes_n + " kw_code;\n};";
-//     return result;
-// }
-//
-
 std::string keyword_list(const Keywords_and_codes& kwcs)
 {
     std::string              result;
@@ -305,10 +292,22 @@ std::string keyword_list(const Keywords_and_codes& kwcs)
     return result;
 }
 
-// static std::string kwtable_data(const Keywords_and_codes& kwcs, const std::string& codes_n){
-//     auto result = keyword_list(kwcs, codes_n) + search_keyword_proc_text;
-//     return result;
-// }
+Keywords_and_codes Id_with_keyw_builder::Impl::
+    build_keywords_with_codes(const INFO& info)
+{
+    Keywords_and_codes result;
+    result.reserve(keyword_strings_.size());
+    size_t i = 0;
+    for(size_t  kw_idx : info.kw_repres){
+        auto  num_value_of_code   = (scope_->strsc[kw_idx]).code;
+        auto  str_repres_for_code = info.lexem_codes_names[num_value_of_code];
+        auto& keyword             = keyword_strings_[i];
+        auto temp                 = std::make_pair(keyword, str_repres_for_code);
+        result.push_back(temp);
+        ++i;
+    }
+    return result;
+}
 
 std::string Id_with_keyw_builder::Impl::build_table_of_keywords(const INFO& info)
 {

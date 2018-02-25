@@ -9,6 +9,7 @@
 
 #include <string>
 #include <iterator>
+#include <algorithm>
 #include "../include/id_with_keyw_builder.h"
 #include "../include/regexp_match.h"
 #include "../include/u32strings_to_commands.h"
@@ -23,6 +24,8 @@
 #include "../include/generate_separate_keywords_automaton.h"
 #include "../include/u32strings_to_commands.h"
 #include "../include/regexp1_or_regexp2.h"
+#include "../include/list_to_columns.h"
+#include "../include/char_conv.h"
 
 using namespace std::string_literals;
 using operations_with_sets::operator-;
@@ -149,6 +152,13 @@ std::string add_category_wrapper(info_for_constructing::Info& info,
     return result;
 }
 
+using Keyword_and_code = std::pair<std::u32string, std::string>;
+/* The first element of this pair is a string representation of the keyword, and the
+ * second element is a string representation of the identifier that is the
+ * corresponding lexeme code. */
+
+using Keywords_and_codes = std::vector<Keyword_and_code>;
+
 struct Id_with_keyw_builder::Impl{
 public:
     Impl(const Trie_for_set_of_char32ptr& sets,
@@ -180,6 +190,8 @@ private:
                                                          const Command_buffer& regexp);
 
     std::string build_table_of_keywords(const INFO& info);
+
+    Keywords_and_codes build_keywords_with_codes(const INFO& info);
 };
 
 template<class InputIterator>
@@ -214,9 +226,101 @@ auto all_elems(InputIterator first, InputIterator last) -> elems_set<InputIterat
     return result;
 }
 
+Keywords_and_codes Id_with_keyw_builder::Impl::
+    build_keywords_with_codes(const INFO& info)
+{
+    Keywords_and_codes result;
+    return result;
+}
+
+static const std::string keyword_list_fmt = R"~(struct Keyword_list_elem{{
+    std::u32string keyword;
+    {0}            kw_code;
+}};
+
+static const Keyword_list_elem kwlist[] = {{
+{1}
+}};
+
+static constexpr ssize_t THERE_IS_NO_KEYWORD = -1;
+
+namespace{{
+    template <class T, std::size_t N>
+    constexpr std::size_t size(const T (&array)[N]) noexcept
+    {{
+        return N;
+    }}
+}};
+
+static constexpr ssize_t NUM_OF_KEYWORDS = size(kwlist);
+
+static ssize_t search_keyword(const std::u32string& finded_keyword)
+{{
+    ssize_t result      = THERE_IS_NO_KEYWORD;
+    ssize_t low_bound   = 0;
+    ssize_t upper_bound = NUM_OF_KEYWORDS - 1;
+    ssize_t middle;
+    while(low_bound <= upper_bound){{
+        middle             = (low_bound + upper_bound) / 2;
+        auto& curr_kw      = kwlist[middle].keyword;
+        int compare_result = finded_keyword.compare(curr_kw);
+        if(0 == compare_result){{
+            return middle;
+        }}
+        if(compare_result < 0){{
+            upper_bound = middle - 1;
+        }}else{{
+            low_bound   = middle + 1;
+        }}
+    }}
+    return result;
+}}
+)~"s;
+
+static const std::string kwlist_elem_fmt = R"~({{U"{0}", {1}}})~"s;
+static constexpr size_t  INDENT_WIDTH    = 4;
+
+// std::string keyword_list_elem(const std::string& codes_n){
+//     std::string result = "struct Keyword_list_elem{\n    std::u32string keyword;\n    " +
+//                          codes_n + " kw_code;\n};";
+//     return result;
+// }
+//
+
+std::string keyword_list(const Keywords_and_codes& kwcs)
+{
+    std::string              result;
+    std::vector<std::string> kwl;
+    for(const auto& k : kwcs){
+        auto temp = fmt::format(kwlist_elem_fmt, u32string_to_utf8(k.first), k.second);
+        kwl.push_back(temp);
+    }
+
+    Format f;
+    f.indent                 = INDENT_WIDTH;
+    f.number_of_columns      = 2;
+    f.spaces_between_columns = 1;
+
+    result = string_list_to_columns(kwl, f);
+    return result;
+}
+
+// static std::string kwtable_data(const Keywords_and_codes& kwcs, const std::string& codes_n){
+//     auto result = keyword_list(kwcs, codes_n) + search_keyword_proc_text;
+//     return result;
+// }
+
 std::string Id_with_keyw_builder::Impl::build_table_of_keywords(const INFO& info)
 {
     std::string result;
+    Keywords_and_codes kwcs = build_keywords_with_codes(info);
+    std::sort(kwcs.begin(), kwcs.end(),
+              [](const Keyword_and_code& k1, const Keyword_and_code& k2){
+                  return k1.first < k2.first;
+    });
+    result = fmt::format(keyword_list_fmt,
+                         info.names.codes_type_name,
+                         keyword_list(kwcs));
     return result;
 }
 

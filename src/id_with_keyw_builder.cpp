@@ -284,24 +284,22 @@ static const std::string idkeyword_final_actions_fmt =
         }}
 )~"s;
 
-// static const std::string add_ident_to_table              =
-//     "\n        token.code = {0};"
-//     "\n        token.ids = ids_trie->insert(buffer);"s;
+static const std::string idkeyw_final_proc_impl_fmt =
+    R"~(void {0}::idkeyw_final_proc(){{
+    if(!is_elem(state, final_states_for_idkeywords)){{
+        printf("{1}", loc->current_line);
+        en->increment_number_of_errors();
+        {2}ssize_t search_result = search_keyword(buffer);
+        if(search_result != THERE_IS_NO_KEYWORD){{
+            token.code = kwlist[search_result].kw_code;
+        }}else{{
+            token.code = {4}::{3};
+            token.ids  = ids_trie->insert(buffer);
+        }}
+    }}
+}})~"s;
 
 static const std::string spaces_after_actions = ";\n        "s;
-
-// static const std::string idkeyword_final_actions = R"~(
-//         int search_result = search_keyword(buffer);
-//         if(search_result != THERE_IS_NO_KEYWORD) {
-//             token.code = kwlist[search_result].kw_code;
-//         })~";
-//
-// static const std::string idkeyword_final_actions1 = R"~(
-//     int search_result = search_keyword(buffer);
-//     if(search_result != THERE_IS_NO_KEYWORD) {
-//         token.code = kwlist[search_result].kw_code;
-//     }
-// )~";
 
 std::string keyword_list(const Keywords_and_codes& kwcs)
 {
@@ -382,12 +380,7 @@ void Id_with_keyw_builder::Impl::
                                            info.identifier_preactions);
     info.ifs_of_start_procs.push_back(idkeyw_if);
     result.final_proc_proto  = idkeyw_aut_final_proc_proto;
-
     auto keywords_table      = build_table_of_keywords(info);
-
-//     f.final_actions           = info.identifier_postactions +
-//                                 fmt::format(add_ident_to_table, info.names.ident_name);
-//     result.final_proc_impl    = ident_automaton_impl_finals(info);
     Str_data_for_automaton      f;
     f.automata_name          = idkeyw_aut_name;
     f.proc_name              = "idkeyw_proc"s;
@@ -407,7 +400,13 @@ void Id_with_keyw_builder::Impl::
                                repres_builder.build_repres(info, glued_regexp);
     result.final_proc_ptr    = fmt::format(idkeyw_aut_final_proc_ptr_fmt,
                                            info.names.name_of_scaner_class);
-//     result.final_proc_impl    = ident_automaton_impl_finals(info);
+    auto final_proc_impl     = fmt::format(idkeyw_final_proc_impl_fmt,
+                                           info.names.name_of_scaner_class,
+                                           idkeyw_aut_diagnostic_msg,
+                                           info.keywords_postaction,
+                                           info.names.ident_name,
+                                           info.names.codes_type_name);
+    result.final_proc_impl   = final_proc_impl;
     info.automata_info.push_back(result);
 }
 

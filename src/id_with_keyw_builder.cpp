@@ -269,10 +269,39 @@ static ssize_t search_keyword(const std::u32string& finded_keyword)
     }}
     return result;
 }}
+
 )~"s;
 
 static const std::string kwlist_elem_fmt = R"~({{U"{0}", {1}}})~"s;
 static constexpr size_t  INDENT_WIDTH    = 4;
+static const std::string idkeyword_final_actions_fmt =
+    R"~({0}ssize_t search_result = search_keyword(buffer);
+        if(search_result != THERE_IS_NO_KEYWORD){{
+            token.code = kwlist[search_result].kw_code;
+        }}else{{
+            token.code = {2}::{1};
+            token.ids  = ids_trie->insert(buffer);
+        }}
+)~"s;
+
+// static const std::string add_ident_to_table              =
+//     "\n        token.code = {0};"
+//     "\n        token.ids = ids_trie->insert(buffer);"s;
+
+static const std::string spaces_after_actions = ";\n        "s;
+
+// static const std::string idkeyword_final_actions = R"~(
+//         int search_result = search_keyword(buffer);
+//         if(search_result != THERE_IS_NO_KEYWORD) {
+//             token.code = kwlist[search_result].kw_code;
+//         })~";
+//
+// static const std::string idkeyword_final_actions1 = R"~(
+//     int search_result = search_keyword(buffer);
+//     if(search_result != THERE_IS_NO_KEYWORD) {
+//         token.code = kwlist[search_result].kw_code;
+//     }
+// )~";
 
 std::string keyword_list(const Keywords_and_codes& kwcs)
 {
@@ -300,7 +329,9 @@ Keywords_and_codes Id_with_keyw_builder::Impl::
     size_t i = 0;
     for(size_t  kw_idx : info.kw_repres){
         auto  num_value_of_code   = (scope_->strsc[kw_idx]).code;
-        auto  str_repres_for_code = info.lexem_codes_names[num_value_of_code];
+        auto  str_repres_for_code = fmt::format("{0}::{1}"s,
+                                                info.names.lexem_info_name,
+                                                info.lexem_codes_names[num_value_of_code]);
         auto& keyword             = keyword_strings_[i];
         auto temp                 = std::make_pair(keyword, str_repres_for_code);
         result.push_back(temp);
@@ -363,13 +394,19 @@ void Id_with_keyw_builder::Impl::
     f.category_name_prefix   = "IDKEYWORD"s;
     f.diagnostic_msg         = idkeyw_aut_diagnostic_msg;
     f.final_states_set_name  = "final_states_for_idkeywords"s;
-//     f.final_actions           = info.identifier_postactions +
-//                                 fmt::format(add_ident_to_table, info.names.ident_name);
+    auto& id_postacts        = info.identifier_postactions;
+    auto idkeyw_postactions  = id_postacts.empty() ?
+                               id_postacts :
+                               (id_postacts + spaces_after_actions);
+    f.final_actions          = fmt::format(idkeyword_final_actions_fmt,
+                                           idkeyw_postactions,
+                                           info.names.ident_name,
+                                           info.names.codes_type_name);
     Automata_repres_builder repres_builder {f, sets_, et_, scope_};
-    result.proc_impl         = repres_builder.build_repres(info,
-                                                           glued_regexp);
-    result.final_proc_ptr     = fmt::format(idkeyw_aut_final_proc_ptr_fmt,
-                                            info.names.name_of_scaner_class);
+    result.proc_impl         = keywords_table +
+                               repres_builder.build_repres(info, glued_regexp);
+    result.final_proc_ptr    = fmt::format(idkeyw_aut_final_proc_ptr_fmt,
+                                           info.names.name_of_scaner_class);
 //     result.final_proc_impl    = ident_automaton_impl_finals(info);
     info.automata_info.push_back(result);
 }

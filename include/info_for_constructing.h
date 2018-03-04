@@ -51,10 +51,7 @@ namespace info_for_constructing{
         std::u32string mark_of_single_lined;
         std::u32string mark_of_multilined_begin;
         std::u32string mark_of_multilined_end;
-//         size_t mark_of_single_lined     = 0;
-//         size_t mark_of_multilined_begin = 0;
-//         size_t mark_of_multilined_end   = 0;
-        bool   multilined_is_nested     = false;
+        bool           multilined_is_nested     = false;
     };
 
     struct Info{

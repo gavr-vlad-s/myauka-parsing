@@ -12,6 +12,8 @@
 #include "../include/format.h"
 #include "../include/print_char32.h"
 #include "../include/list_to_columns.h"
+#include "../include/attributed_char_trie.h"
+#include "../include/char_conv.h"
 
 using namespace std::string_literals;
 
@@ -205,12 +207,6 @@ void {1}::omit_multilined_comment()
 
 )~"s;
 
-static const std::string multilined_not_nested_private_fmt =
-R"~(    {0} current_lexem_();
-    void omit_multilined_comment();
-)~"s;
-
-
 static const std::string multilined_comment_nested_fmt =
 R"~(static const State_for_char nested_comments_init_table[] = {{
 {0}
@@ -362,7 +358,10 @@ void {2}::omit_multilined_comment()
 
 )~"s;
 
-// static const std::string omit_nested_multilined_proc_str =
+static const std::string multilined_private_fmt =
+R"~(    {0} current_lexem_();
+    void omit_multilined_comment();
+)~"s;
 
 static constexpr size_t BEGIN_MARKER = 1;
 static constexpr size_t END_MARKER   = 2;
@@ -413,13 +412,77 @@ static std::string table_for_not_nested_multilined(const std::u32string& end_of_
     return result;
 }
 
+static std::string generate_init_table_body_for_nested_comments(const Jumps_and_inits& ji)
+{
+    std::string result;
+    std::vector<std::string> table_elems;
+    auto& inits = ji.init_table;
+    for(const auto& i : inits){
+        std::string elem = "{" + std::to_string(i.first) + ", " +
+                           char32_to_utf8(i.second) + "}";
+        table_elems.push_back(elem);
+    }
+
+    Format f;
+    f.indent                 = INDENT_WIDTH;
+    f.number_of_columns      = 3;
+    f.spaces_between_columns = 1;
+
+    result                   = string_list_to_columns(table_elems, f);
+    return result;
+}
+
+std::string generate_jump_table_body_for_nested_comments(const Jumps_and_inits& ji){
+    std::string result;
+    auto& jmps = ji.jumps;
+    std::vector<std::string> jmp_table_body;
+    for(const auto& j : jmps){
+        std::string jump = "{const_cast<char32_t*>(U\"" +
+                           u32string_to_utf8(j.jump_chars) + "\"), " +
+                           std::to_string(j.code) + ", " +
+                           std::to_string(j.first_state) + "}";
+        jmp_table_body.push_back(jump);
+    }
+
+    Format f;
+    f.indent                 = INDENT_WIDTH;
+    f.number_of_columns      = 3;
+    f.spaces_between_columns = 1;
+
+    result                   = string_list_to_columns(jmp_table_body, f);
+    return result;
+}
+
+Jumps_and_inits prepare_jumps(const info_for_constructing::Info& info)
+{
+    Jumps_and_inits result;
+    Attributed_char_trie atrie;
+    Attributed_cstring   atrib_cstr_b;
+    Attributed_cstring   atrib_cstr_e;
+
+    auto& comments_info    = info.about_comments;
+    auto& marker_b         = comments_info.mark_of_multilined_begin;
+    auto& marker_e         = comments_info.mark_of_multilined_end;
+
+    atrib_cstr_b.str       = const_cast<char32_t*>(marker_b.c_str());
+    atrib_cstr_e.str       = const_cast<char32_t*>(marker_e.c_str());
+    atrib_cstr_b.attribute = BEGIN_MARKER;
+    atrib_cstr_e.attribute = END_MARKER;
+    atrie.insert(attributed_cstring2string(atrib_cstr_b, 0));
+    atrie.insert(attributed_cstring2string(atrib_cstr_e, 0));
+
+    result                 = atrie.jumps();
+    return result;
+}
+
 Current_lexem_proc_info Current_lexem_proc_builder::there_is_only_multilined()
 {
     Current_lexem_proc_info result;
     auto& comments_info = info_.about_comments;
     if(comments_info.multilined_is_nested){
-        auto init_table_body   = std::string();
-        auto table_body        = std::string();
+        auto jumps             = prepare_jumps(info_);
+        auto init_table_body   = generate_init_table_body_for_nested_comments(jumps);
+        auto table_body        = generate_jump_table_body_for_nested_comments(jumps);
         result.implementation  = fmt::format(multilined_comment_nested_fmt,
                                              init_table_body,
                                              table_body,
@@ -434,56 +497,12 @@ Current_lexem_proc_info Current_lexem_proc_builder::there_is_only_multilined()
                                              info_.names.name_of_scaner_class,
                                              info_.names.lexem_info_name,
                                              info_.names.codes_type_name);
-        result.private_members = fmt::format(multilined_not_nested_private_fmt,
-                                             info_.names.lexem_info_name);
     }
+    result.private_members = fmt::format(multilined_private_fmt,
+                                         info_.names.lexem_info_name);
     return result;
 }
-//
-// std::string generate_jump_table_for_nested_comments(const Jumps_and_inits& ji){
-//     std::string result;
-//     auto& jmps = ji.jumps;
-//     std::vector<std::string> jmp_table_body;
-//     for(const auto& j : jmps){
-//         std::string jump = "{const_cast<char32_t*>(U\"" +
-//                            u32string_to_utf8(j.jump_chars) + "\"), " +
-//                            std::to_string(j.code) + ", " +
-//                            std::to_string(j.first_state) + "}";
-//         jmp_table_body.push_back(jump);
-//     }
-//
-//     Format f;
-//     f.indent                 = INDENT_WIDTH;
-//     f.number_of_columns      = 3;
-//     f.spaces_between_columns = 1;
-//
-//     result = nested_comment_jump_struct +
-//              string_list_to_columns(jmp_table_body, f) + "\n};\n\n";
-//     return result;
-// }
-//
-// static std::string generate_init_table_for_nested_comments(const Jumps_and_inits& ji){
-//     std::string result;
-//     std::vector<std::string> table_elems;
-//     auto& inits = ji.init_table;
-//     for(const auto& i : inits){
-//         std::string elem = "{" + std::to_string(i.first) + ", " +
-//                            char32_to_utf8(i.second) + "}";
-//         table_elems.push_back(elem);
-//     }
-//
-//     Format f;
-//     f.indent                 = INDENT_WIDTH;
-//     f.number_of_columns      = 3;
-//     f.spaces_between_columns = 1;
-//
-//     result = "static const State_for_char nested_comments_init_table[] = {\n";
-//     result += string_list_to_columns(table_elems, f) + "\n};\n\n"
-//               "#define NUM_OF_ELEMS_OF_COMM_INIT_TABLE " +
-//               std::to_string(table_elems.size()) + "\n\n";
-//     return result;
-// }
-//
+
 // static std::string generate_table_for_nested_comments(const Jumps_and_inits& ji){
 //     std::string result;
 //     result = generate_init_table_for_nested_comments(ji) +
@@ -493,26 +512,6 @@ Current_lexem_proc_info Current_lexem_proc_builder::there_is_only_multilined()
 // }
 //
 // static std::string omit_nested_multilined(Info_for_constructing& info){
-//     std::string          result;
-//     Attributed_char_trie atrie;
-//     Attributed_cstring   atrib_cstr_b;
-//     Attributed_cstring   atrib_cstr_e;
-//
-//     auto marker_b = info.et.strs_trie->get_string(info.mark_of_multilined_begin);
-//     auto marker_e = info.et.strs_trie->get_string(info.mark_of_multilined_end);
-//
-//     atrib_cstr_b.str       = const_cast<char32_t*>(marker_b.c_str());
-//     atrib_cstr_e.str       = const_cast<char32_t*>(marker_e.c_str());
-//     atrib_cstr_b.attribute = BEGIN_MARKER;
-//     atrib_cstr_e.attribute = END_MARKER;
-//     atrie.insert(attributed_cstring2string(atrib_cstr_b, 0));
-//     atrie.insert(attributed_cstring2string(atrib_cstr_e, 0));
-//
-//     Jumps_and_inits jmps = atrie.jumps();
-//
-//     result = generate_table_for_nested_comments(jmps) +
-//              "void " + info.name_of_scaner_class + omit_nested_multilined_proc_str;
-//     return result;
 // }
 //
 // static std::string omit_multilined_comment_proc(Info_for_constructing& info){
@@ -580,8 +579,6 @@ Current_lexem_proc_info Current_lexem_proc_builder::build()
 // #include "../include/implement_scaner.h"
 // #include "../include/indent.h"
 // #include "../include/generate_category_table.h"
-// #include "../include/attributed_char_trie.h"
-// #include "../include/char_conv.h"
 // #include "../include/add_newline_if_non_empty.h"
 // #include <cstdio>
 // #include <string>

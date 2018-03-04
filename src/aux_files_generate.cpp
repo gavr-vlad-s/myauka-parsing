@@ -440,6 +440,16 @@ static const char* search_char_h =
 int search_char(char32_t c, const char32_t* array);
 #endif)~";
 
+static const char* mysize_h =
+R"~(#ifndef MYSIZE_H
+#define MYSIZE_H
+template <class T, std::size_t N>
+constexpr std::size_t size(const T (&array)[N]) noexcept
+{
+    return N;
+}
+#endif)~";
+
 static const char* trie_h =
     R"~(#ifndef TRIE_H
 #define TRIE_H
@@ -866,6 +876,7 @@ static const Name_and_contents generated_files[] = {
     {const_cast<char*>("location.h"),            const_cast<char*>(location_h)           },
     {const_cast<char*>("operation_with_sets.h"), const_cast<char*>(operation_with_sets_h)},
     {const_cast<char*>("search_char.h"),         const_cast<char*>(search_char_h)        },
+    {const_cast<char*>("mysize.h"),              const_cast<char*>(mysize_h)             },
     {const_cast<char*>("trie.h"),                const_cast<char*>(trie_h)               },
     {const_cast<char*>("char_conv.cpp"),         const_cast<char*>(char_conv_cpp)        },
     {const_cast<char*>("char_trie.cpp"),         const_cast<char*>(char_trie_cpp)        },

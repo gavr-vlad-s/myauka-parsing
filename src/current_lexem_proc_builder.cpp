@@ -211,20 +211,161 @@ R"~(    {0} current_lexem_();
 )~"s;
 
 
-//
-// static const std::string current_lexem_with_omitting_multilined =
-//     R"~(::{
-// }
-//
-// )~";
+static const std::string multilined_comment_nested_fmt =
+R"~(static const State_for_char nested_comments_init_table[] = {{
+{0}
+}};
 
-// static const std::string there_is_only_multilined_fmt =
-// R"~(void {0}::)~"s;
+static constexpr size_t NUM_OF_ELEMS_OF_COMM_INIT_TABLE =
+    size(nested_comments_init_table);
+
+static constexpr uint16_t BEGIN_MARKER = 1;
+static constexpr uint16_t END_MARKER   = 2;
+
+struct Comment_jump{{
+    /** A pointer to a string of characters that can be crossed. */
+    char32_t*       symbols;
+    uint16_t        marker;
+    /** If the current character matches symbols[0], then the transition to the state
+     *  first_state;
+     *  if the current character matches symbols[1], then the transition to the state
+     *  first_state + 1;
+     *  if the current character matches symbols[2], then the transition to the state
+     *  first_state + 2, and so on. */
+    uint16_t        first_state;
+}};
+
+static const Comment_jump comments_jump_table[] = {{
+{1}
+}};
+
+void {2}::omit_multilined_comment()
+{{
+    ssize_t st     = -1;
+    comment_level  = 1;
+    uint16_t m;
+    while((ch = (loc->pcurrent_char)++)){{
+        if(-1 == st){{
+            st = get_init_state(ch, nested_comments_init_table,
+                                NUM_OF_ELEMS_OF_COMM_INIT_TABLE);
+            continue;
+        }}
+        auto j   = comments_jump_table[st];
+        int  idx = search_char(ch, j.symbols);
+        m        = j.marker;
+        if(idx != THERE_IS_NO_CHAR){{
+            st = j.first_state + idx;
+        }}else{{
+            switch(m){{
+                case BEGIN_MARKER:
+                    comment_level++;
+                    (loc->pcurrent_char)--;
+                    st = -1;
+                    break;
+                case END_MARKER:
+                    comment_level--;
+                    (loc->pcurrent_char)--;
+                    st = -1;
+                    if(0 == comment_level){{
+                        return;
+                    }}
+                    break;
+                default:
+                    (loc->pcurrent_char)--;
+                    st = -1;
+            }}
+        }}
+    }}
+
+    if(-1 == st){{
+        printf("Unexpected end of a multi-line comment at line %zu.\n",
+               lexem_begin_line_number());
+        en->increment_number_of_errors();
+    }}else{{
+        auto j   = comments_jump_table[st];
+        m        = j.marker;
+        switch(m){{
+            case BEGIN_MARKER:
+                comment_level++;
+                (loc->pcurrent_char)--;
+                break;
+            case END_MARKER:
+                comment_level--;
+                (loc->pcurrent_char)--;
+                break;
+            default:
+                (loc->pcurrent_char)--;
+                printf("Unexpected end of a multi-line comment at line %zu.\n",
+                       lexem_begin_line_number());
+                en->increment_number_of_errors();
+                return;
+        }}
+        if(comment_level != 0){{
+            printf("Unexpected end of a multi-line comment at line %zu.\n",
+                   lexem_begin_line_number());
+            en->increment_number_of_errors();
+        }}
+    }}
+}}
+
+{3} {2}::current_lexem_()
+{{
+    automaton   = A_start; token.code = None;
+    lexem_begin = loc->pcurrent_char;
+    bool t      = true;
+    while((ch = *(loc->pcurrent_char)++)){{
+        char_categories = get_categories_set(ch);
+        t = (this->*procs[automaton])();
+        if(!t){{
+            /* We get here only if the lexeme has already been read. At the same time,
+             * the current automaton reads the character immediately after the end of
+             * the token read, based on this symbol, it is decided that the token has
+             * been read and the transition to the next character has been made.
+             * Therefore, in order to not miss the first character of the next lexeme,
+             * we need to decrease the pcurrent_char pointer by one. */
+            (loc->pcurrent_char)--;
+            return token;
+        }}
+    }}
+    /* Here we can be, only if we have already read all the processed text. In this
+     * case, the pointer to the current symbol indicates a byte, which is immediately
+     * after the zero character, which is a sign of the end of the text. To avoid
+     * entering subsequent calls outside the text, we need to go back to the null
+     * character. */
+    (loc->pcurrent_char)--;
+    /* Further, since we are here, the end of the current token (perhaps unexpected)
+     * has not yet been processed. It is necessary to perform this processing, and,
+     * probably, to display any diagnostics. */
+    (this->*finals[automaton])();
+    return token;
+}}
+
+{3} {2}::current_lexem()
+{{
+    for( ; ; ){{
+        auto l = current_lexem_();
+        switch(l.code){{
+            case {4}::MULTI_LINED_COMMENT_MARK:
+                omit_multilined_comment();
+                break;
+            case {4}::MULTI_LINED_COMMENT_END:
+                printf("Unexpected end of a multi-line comment at line %zu.\n",
+                       lexem_begin_line_number());
+                en->increment_number_of_errors();
+                break;
+            default:
+                return token;
+        }}
+    }}
+    return token;
+}}
+
+)~"s;
+
+// static const std::string omit_nested_multilined_proc_str =
 
 static constexpr size_t BEGIN_MARKER = 1;
 static constexpr size_t END_MARKER   = 2;
-// #define BEGIN_MARKER 1
-// #define END_MARKER   2
 
 Current_lexem_proc_info Current_lexem_proc_builder::no_comments()
 {
@@ -277,6 +418,14 @@ Current_lexem_proc_info Current_lexem_proc_builder::there_is_only_multilined()
     Current_lexem_proc_info result;
     auto& comments_info = info_.about_comments;
     if(comments_info.multilined_is_nested){
+        auto init_table_body   = std::string();
+        auto table_body        = std::string();
+        result.implementation  = fmt::format(multilined_comment_nested_fmt,
+                                             init_table_body,
+                                             table_body,
+                                             info_.names.name_of_scaner_class,
+                                             info_.names.lexem_info_name,
+                                             info_.names.codes_type_name);
     }else{
         const auto& table_body =
             table_for_not_nested_multilined(comments_info.mark_of_multilined_end);
@@ -382,76 +531,6 @@ Current_lexem_proc_info Current_lexem_proc_builder::there_is_only_multilined()
 //              current_lexem_with_omitting_multilined;
 //     return result;
 // }
-//
-// static const std::string omit_nested_multilined_proc_str =
-//     R"~(::omit_multilined_comment(){
-//     ssize_t st     = -1;
-//     comment_level  = 1;
-//     uint16_t m;
-//     while((ch = (loc->pcurrent_char)++)){
-//         if(-1 == st){
-//             st = get_init_state(ch, nested_comments_init_table,
-//                                 NUM_OF_ELEMS_OF_COMM_INIT_TABLE);
-//             continue;
-//         }
-//         auto j   = comments_jump_table[st];
-//         int  idx = search_char(ch, j.symbols);
-//         m        = j.marker;
-//         if(idx != THERE_IS_NO_CHAR){
-//             st = j.first_state + idx;
-//         }else{
-//             switch(m){
-//                 case BEGIN_MARKER:
-//                     comment_level++;
-//                     (loc->pcurrent_char)--;
-//                     st = -1;
-//                     break;
-//                 case END_MARKER:
-//                     comment_level--;
-//                     (loc->pcurrent_char)--;
-//                     st = -1;
-//                     if(0 == comment_level){
-//                         return;
-//                     }
-//                     break;
-//                 default:
-//                     (loc->pcurrent_char)--;
-//                     st = -1;
-//             }
-//         }
-//     }
-//     if(-1 == st){
-//         printf("Unexpected end of a multi-line comment in line %zu.\n",
-//                lexem_begin_line_number());
-//         en->increment_number_of_errors();
-//     }else{
-//         auto j   = comments_jump_table[st];
-//         m        = j.marker;
-//         switch(m){
-//             case BEGIN_MARKER:
-//                 comment_level++;
-//                 (loc->pcurrent_char)--;
-//                 break;
-//             case END_MARKER:
-//                 comment_level--;
-//                 (loc->pcurrent_char)--;
-//                 break;
-//             default:
-//                 (loc->pcurrent_char)--;
-//                 printf("Unexpected end of a multi-line comment in line %zu.\n",
-//                        lexem_begin_line_number());
-//                 en->increment_number_of_errors();
-//                 return;
-//         }
-//         if(comment_level != 0){
-//             printf("Unexpected end of a multi-line comment in line %zu.\n",
-//                    lexem_begin_line_number());
-//             en->increment_number_of_errors();
-//         }
-//     }
-// }
-//
-// )~";
 
 Current_lexem_proc_info Current_lexem_proc_builder::build()
 {
@@ -526,20 +605,6 @@ Current_lexem_proc_info Current_lexem_proc_builder::build()
 //     automaton = A_unknown;
 //     return t;
 // })~";
-//
-// static const std::string nested_comment_jump_struct =
-//     R"~(struct Comment_jump{
-//     /** A pointer to a string of characters that can be crossed. */
-//     char32_t*       symbols;
-//     uint16_t        marker;
-//     /** If the current character matches symbols[0], then the transition to the state
-//      *  first_state;
-//      *  if the current character matches symbols[1], then the transition to the state
-//      *  first_state + 1;
-//      *  if the current character matches symbols[2], then the transition to the state
-//      *  first_state + 2, and so on. */
-//     uint16_t        first_state;
-// };
 //
 // static const Comment_jump comments_jump_table[] = {\n)~";
 //

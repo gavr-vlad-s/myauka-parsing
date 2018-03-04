@@ -238,14 +238,6 @@ static const Keyword_list_elem kwlist[] = {{
 
 static constexpr ssize_t THERE_IS_NO_KEYWORD = -1;
 
-namespace{{
-    template <class T, std::size_t N>
-    constexpr std::size_t size(const T (&array)[N]) noexcept
-    {{
-        return N;
-    }}
-}};
-
 static constexpr ssize_t NUM_OF_KEYWORDS = size(kwlist);
 
 static ssize_t search_keyword(const std::u32string& finded_keyword)

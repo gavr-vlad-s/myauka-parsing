@@ -109,10 +109,6 @@ static Comment_info collect_comment_info(const Collected_data&   d,
         et.strs_trie->get_string(d.indeces_.mark_of_multilined_begin);
     result.mark_of_multilined_end   =
         et.strs_trie->get_string(d.indeces_.mark_of_multilined_end);
-//     info.et.strs_trie->get_string(d.indeces_.mark_of_multilined_begin)
-//     result.mark_of_single_lined     = d.indeces_.mark_of_single_lined;
-//     result.mark_of_multilined_begin = d.indeces_.mark_of_multilined_begin;
-//     result.mark_of_multilined_end   = d.indeces_.mark_of_multilined_end;
     result.multilined_is_nested     = d.indeces_.multilined_is_nested;
     return result;
 }

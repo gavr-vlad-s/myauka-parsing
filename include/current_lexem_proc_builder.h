@@ -32,5 +32,6 @@ private:
     Current_lexem_proc_info no_comments();
     Current_lexem_proc_info there_is_only_singlelined();
     Current_lexem_proc_info there_is_only_multilined();
+    Current_lexem_proc_info there_are_all_comments();
 };
 #endif

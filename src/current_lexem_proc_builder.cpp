@@ -503,33 +503,11 @@ Current_lexem_proc_info Current_lexem_proc_builder::there_is_only_multilined()
     return result;
 }
 
-// static std::string generate_table_for_nested_comments(const Jumps_and_inits& ji){
-//     std::string result;
-//     result = generate_init_table_for_nested_comments(ji) +
-//              generate_jump_table_for_nested_comments(ji) +
-//              "#define BEGIN_MARKER 1\n" "#define END_MARKER 2\n\n";
-//     return result;
-// }
-//
-// static std::string omit_nested_multilined(Info_for_constructing& info){
-// }
-//
-// static std::string omit_multilined_comment_proc(Info_for_constructing& info){
-//     std::string result;
-//     result = info.multilined_is_nested ?
-//              omit_nested_multilined(info) : omit_not_nested_multilined(info);
-//     return result;
-// }
-
-// static std::string there_is_only_multilined(Info_for_constructing& info){
-//     std::string result;
-//     result = "void " + info.name_of_scaner_class + omit_multilined_comment_proc(info) +
-//              info.lexem_info_name + " " + info.name_of_scaner_class +
-//              current_lexem__without_comments_proc +
-//              info.lexem_info_name + " " + info.name_of_scaner_class +
-//              current_lexem_with_omitting_multilined;
-//     return result;
-// }
+Current_lexem_proc_info Current_lexem_proc_builder::there_are_all_comments()
+{
+    Current_lexem_proc_info result;
+    return result;
+}
 
 Current_lexem_proc_info Current_lexem_proc_builder::build()
 {
@@ -540,8 +518,9 @@ Current_lexem_proc_info Current_lexem_proc_builder::build()
         There_is_only_multilined, There_are_all
     };
 
-    bool t1 = info_.about_comments.mark_of_single_lined.empty();
-    bool t2 = info_.about_comments.mark_of_multilined_begin.empty();
+    auto& comments_info = info_.about_comments;
+    bool  t1            = comments_info.mark_of_single_lined.empty();
+    bool  t2            = comments_info.mark_of_multilined_begin.empty();
 
     Comment_kind k = static_cast<Comment_kind>(t2 * 2 + t1);
 
@@ -554,16 +533,12 @@ Current_lexem_proc_info Current_lexem_proc_builder::build()
             break;
         case Comment_kind::There_is_only_multilined:
             result = there_is_only_multilined();
-//             result                       = there_is_only_multilined(info);
-//             info.fields_for_comments_handling = "\n" + indent + info.lexem_info_name +
-//                                          + " " + "current_lexem_();\n"
-//                                          + indent + "void omit_multilined_comment();";
-//             if(info.multilined_is_nested){
-//                 info.fields_for_comments_handling += "\n" + indent + "int comment_level;";
-//             }
+            if(comments_info.multilined_is_nested){
+                result.private_members += "\n    int comment_level;";
+            }
             break;
         case Comment_kind::There_are_all:
-//             result                       = there_are_all_comments(info);
+            result                       = there_are_all_comments();
 //             info.fields_for_comments_handling = "\n" + indent + info.lexem_info_name +
 //                                          + " " + "current_lexem_();\n"
 //                                          + indent + "void omit_singlelined_comment();\n"

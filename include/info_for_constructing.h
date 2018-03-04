@@ -47,28 +47,39 @@ namespace info_for_constructing{
 
     using Delimiter_with_code = std::pair<std::u32string, size_t>;
 
+    struct Comment_info{
+        std::u32string mark_of_single_lined;
+        std::u32string mark_of_multilined_begin;
+        std::u32string mark_of_multilined_end;
+//         size_t mark_of_single_lined     = 0;
+//         size_t mark_of_multilined_begin = 0;
+//         size_t mark_of_multilined_end   = 0;
+        bool   multilined_is_nested     = false;
+    };
+
     struct Info{
-        size_t                           set_of_used_automata = 0;
-        size_t                           write_action_name_idx;
-        Regexps                          regexps;
-        Names                            names;
-        std::vector<std::string>         lexem_codes_names;
-        Automata_info                    automata_info;
-        std::vector<std::string>         ifs_of_start_procs;
-        std::vector<size_t>              del_repres;
-        std::vector<size_t>              kw_repres;
-        Trie_for_set_of_char32           char_cat;
-        std::map<size_t, std::string>    category_name;
-        bool                             newline_is_lexem     = false;
-        bool                             needed_Elem          = false;
-        std::string                      keywords_postaction;
-        std::string                      delimiters_postaction;
-        std::string                      string_preactions;
-        std::string                      string_postactions;
-        std::string                      number_preactions;
-        std::string                      number_postactions;
-        std::string                      identifier_preactions;
-        std::string                      identifier_postactions;
+        size_t                        set_of_used_automata    = 0;
+        size_t                        write_action_name_idx;
+        Regexps                       regexps;
+        Names                         names;
+        std::vector<std::string>      lexem_codes_names;
+        Automata_info                 automata_info;
+        std::vector<std::string>      ifs_of_start_procs;
+        std::vector<size_t>           del_repres;
+        std::vector<size_t>           kw_repres;
+        Trie_for_set_of_char32        char_cat;
+        std::map<size_t, std::string> category_name;
+        bool                          newline_is_lexem        = false;
+        bool                          needed_Elem             = false;
+        std::string                   keywords_postaction;
+        std::string                   delimiters_postaction;
+        std::string                   string_preactions;
+        std::string                   string_postactions;
+        std::string                   number_preactions;
+        std::string                   number_postactions;
+        std::string                   identifier_preactions;
+        std::string                   identifier_postactions;
+        Comment_info                  about_comments;
 //         std::vector<Delimiter_with_code> delims;
 //         Codes_info  codes_info;
     };

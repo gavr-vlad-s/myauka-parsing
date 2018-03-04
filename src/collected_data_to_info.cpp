@@ -37,7 +37,6 @@ static const std::set<char32_t> spaces = {
 
 static const std::string spaces_name             = "SPACES"s;
 
-
 static Names data_to_names(const Collected_data&   d,
                            const Errors_and_tries& et)
 {
@@ -74,14 +73,55 @@ static Names data_to_names(const Collected_data&   d,
     return result;
 }
 
-//         std::string                      identifier_preactions;
-//         std::string                      identifier_postactions;
+//         std::string                      ;
+//         std::string                      ;
 
+static void collect_pre_and_postaction(info_for_constructing::Info& info,
+                                       const Collected_data&        d,
+                                       const Errors_and_tries&      et)
+{
+    auto& strst                 = et.strs_trie;
+    info.keywords_postaction    = idx_to_string(strst,
+                                                d.postactions_.keywords_postaction);
+    info.delimiters_postaction  = idx_to_string(strst,
+                                                d.postactions_.delimiters_postaction);
+    info.string_preactions      = idx_to_string(strst,
+                                                d.acts_for_strings_.init_acts);
+    info.string_postactions     = idx_to_string(strst,
+                                                d.acts_for_strings_.fin_acts);
+    info.number_preactions      = idx_to_string(strst,
+                                                d.acts_for_numbers_.init_acts);
+    info.number_postactions     = idx_to_string(strst,
+                                                d.acts_for_numbers_.fin_acts);
+    info.identifier_preactions  =  idx_to_string(strst,
+                                                 d.acts_for_idents_.init_acts);
+    info.identifier_postactions =  idx_to_string(strst,
+                                                 d.acts_for_idents_.fin_acts);
+}
 
-info_for_constructing::Info collected_data_to_info(const Collected_data&            d,
-                                                   const Errors_and_tries&          et,
-                                                   const Trie_for_set_of_char32ptr& sets_from_automata,
-                                                   const std::shared_ptr<Scope>&    scope)
+static Comment_info collect_comment_info(const Collected_data&   d,
+                                         const Errors_and_tries& et)
+{
+    Comment_info result;
+    result.mark_of_single_lined     =
+        et.strs_trie->get_string(d.indeces_.mark_of_multilined_begin);
+    result.mark_of_multilined_begin =
+        et.strs_trie->get_string(d.indeces_.mark_of_multilined_begin);
+    result.mark_of_multilined_end   =
+        et.strs_trie->get_string(d.indeces_.mark_of_multilined_end);
+//     info.et.strs_trie->get_string(d.indeces_.mark_of_multilined_begin)
+//     result.mark_of_single_lined     = d.indeces_.mark_of_single_lined;
+//     result.mark_of_multilined_begin = d.indeces_.mark_of_multilined_begin;
+//     result.mark_of_multilined_end   = d.indeces_.mark_of_multilined_end;
+    result.multilined_is_nested     = d.indeces_.multilined_is_nested;
+    return result;
+}
+
+info_for_constructing::Info
+    collected_data_to_info(const Collected_data&            d,
+                           const Errors_and_tries&          et,
+                           const Trie_for_set_of_char32ptr& sets_from_automata,
+                           const std::shared_ptr<Scope>&    scope)
 {
     info_for_constructing::Info result;
 
@@ -100,20 +140,11 @@ info_for_constructing::Info collected_data_to_info(const Collected_data&        
     result.del_repres                = d.del_repres_;
     result.kw_repres                 = d.kw_repres_;
 
-    auto& strst                      = et.strs_trie;
-    result.keywords_postaction       = idx_to_string(strst,
-                                                     d.postactions_.keywords_postaction);
-    result.delimiters_postaction     = idx_to_string(strst,
-                                                     d.postactions_.delimiters_postaction);
-    result.string_preactions         = idx_to_string(strst,
-                                                     d.acts_for_strings_.init_acts);
-    result.string_postactions        = idx_to_string(strst,
-                                                     d.acts_for_strings_.fin_acts);
-    result.number_preactions         = idx_to_string(strst,
-                                                     d.acts_for_numbers_.init_acts);
-    result.number_postactions        = idx_to_string(strst,
-                                                     d.acts_for_numbers_.fin_acts);
+    collect_pre_and_postaction(result, d, et);
+
     result.write_action_name_idx     = d.indeces_.write_action_name_idx;
+
+    result.about_comments            = collect_comment_info(d, et);
     implement_automata(result, sets_from_automata, et, scope);
 
     return result;

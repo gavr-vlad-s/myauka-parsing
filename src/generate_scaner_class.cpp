@@ -262,10 +262,14 @@ static void generate_header(const info_for_constructing::Info& info)
     write_file(header_file_name, header_contents);
 }
 
+static void generate_implementation(const info_for_constructing::Info& info)
+{}
+
 void generate_scaner_class(const info_for_constructing::Info& info)
 {
     generate_header(info);
     if(info.needed_Elem){
         generate_elem(info);
     }
+    generate_implementation(info);
 }

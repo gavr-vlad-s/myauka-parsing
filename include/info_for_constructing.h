@@ -45,7 +45,7 @@ namespace info_for_constructing{
 //         std::string fields_for_comments_handling;
     };
 
-    using Delimiter_with_code = std::pair<std::u32string, size_t>;
+//     using Delimiter_with_code = std::pair<std::u32string, size_t>;
 
     struct Comment_info{
         std::u32string mark_of_single_lined;

@@ -35,26 +35,6 @@ static const std::string table_template_fmt      =
 static const std::string table_entry_fmt         =
     R"~({{const_cast<char32_t*>(U"{0}"), {3}::{1}, {2}}})~"s;
 
-
-// std::string generate_Elem(const std::string& s)
-// {
-//     std::string result = R"~(struct Elem {
-//     /** A pointer to a string of characters that can be crossed. */
-//     char32_t*       symbols;
-//     /** A lexeme code. */
-//     )~" + s + R"~( code;
-//     /** If the current character matches symbols[0], then the transition to the state
-//      *  first_state;
-//      *  if the current character matches symbols[1], then the transition to the state
-//      *  first_state + 1;
-//      *  if the current character matches symbols[2], then the transition to the state
-//      *  first_state + 2, and so on. */
-//     uint16_t        first_state;
-// };
-//
-// )~";
-//     return result;
-// }
 //    "static const Elem " + table_name + "[] = {\n";
 
 static std::string table_gen(const info_for_constructing::Info& info,

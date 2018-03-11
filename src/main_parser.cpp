@@ -29,6 +29,7 @@
 #include "../include/aux_files_generate.h"
 #include "../include/collected_data_to_info.h"
 #include "../include/belongs.h"
+#include "../include/generate_scaner_class.h"
 
 // #define DEBUG_ON
 // #ifdef DEBUG_ON
@@ -385,6 +386,7 @@ void Main_parser::Main_parser_data::parse()
             case Kw_idents:
                 parsers_.id_definition_parser_->compile(data_.idents_regexp_,
                                                         data_.acts_for_idents_);
+                data_.aut_data_.set_of_used_automata |= 1ULL << Id_aut;
 #ifdef DEBUG_ON
                 print_commands(data_.idents_regexp_, parsers_.char32_sets_);
 #endif
@@ -423,6 +425,7 @@ void Main_parser::compile()
                                        impl_->parsers_.char32_sets_,
                                        impl_->parsers_.scope_);
     aux_files_generate();
+    generate_scaner_class(info);
 }
 
 Main_parser::~Main_parser() = default;

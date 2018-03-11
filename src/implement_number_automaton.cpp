@@ -27,9 +27,6 @@ static const std::string number_diagnostic_msg            =
 
 static const std::string number_begin_cat_name_by_default = "NUMBER_BEGIN"s;
 
-// static const std::string add_string_to_table              =
-//     "\n        token.string_index = strs->insert(buffer);"s;
-
 static const std::string number_if_fmt = R"~(
     if(belongs({0}, char_categories)){{
         (loc->pcurrent_char)--;
@@ -99,9 +96,8 @@ Automaton_constructing_info
     Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
     result.proc_impl                  = repres_builder.build_repres(info,
                                                                     info.regexps.numbers);
-//     result.final_proc_proto = number_aut_final_proc_proto;
-//     result.final_proc_ptr   = fmt::format(number_aut_final_proc_ptr_fmt,
-//                                           info.names.name_of_scaner_class);
-//     result.final_proc_impl  = number_automaton_impl_finals(info);
+    result.final_proc_proto = number_aut_final_proc_proto;
+    result.final_proc_ptr   = fmt::format(number_aut_final_proc_ptr_fmt, scaner_name);
+    result.final_proc_impl  = number_automaton_impl_finals(info);
     return result;
 }

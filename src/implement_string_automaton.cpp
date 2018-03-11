@@ -23,7 +23,7 @@ static const std::string string_aut_proc_ptr_fmt          = "&{0}::string_proc"s
 static const std::string string_aut_final_proc_proto      = "void string_final_proc()"s;
 static const std::string string_aut_final_proc_ptr_fmt    = "&{0}::string_final_proc"s;
 static const std::string string_diagnostic_msg            =
-    "At line %zu unexpectedly ended a string literal.\n"s;
+    "At line %zu unexpectedly ended a string literal.\\n"s;
 
 static const std::string string_begin_cat_name_by_default = "STRING_BEGIN"s;
 
@@ -44,25 +44,6 @@ static const std::string string_aut_final_proc_fmt      =
     R"~(void {0}::string_final_proc(){{
     {1}token.string_index = strs->insert(buffer);
 }})~"s;
-
-// struct Str_data_for_automaton {
-//     std::string automata_name;
-//     std::string proc_name;
-//     std::string category_name_prefix;
-//     std::string diagnostic_msg;
-//     std::string final_actions;
-//     std::string final_states_set_name;
-// };
-//
-
-
-// std::string automata_repres(info_for_constructing::Info&     info,
-//                             const Str_data_for_automaton&    f,
-//                             const Trie_for_set_of_char32ptr& sets,
-//                             const Errors_and_tries&          et,
-//                             const std::shared_ptr<Scope>&    scope,
-//                             const Regexp_kind                kind);
-
 
 static std::string string_automaton_impl_finals(const info_for_constructing::Info&  info)
 {
@@ -107,12 +88,6 @@ Automaton_constructing_info
     Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
     result.proc_impl                  = repres_builder.build_repres(info,
                                                                     info.regexps.strings);
-//     result.proc_impl                  = automata_repres(info,
-//                                                         f,
-//                                                         sets_from_automata,
-//                                                         et,
-//                                                         scope,
-//                                                         Regexp_kind::String);
     result.final_proc_proto = string_aut_final_proc_proto;
     result.final_proc_ptr   = fmt::format(string_aut_final_proc_ptr_fmt,
                                           info.names.name_of_scaner_class);

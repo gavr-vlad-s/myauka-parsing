@@ -65,23 +65,6 @@ static const std::string delim_aut_final_proc_fmt      =
     {1}token.code = delim_jump_table[state].code;
 }})~"s;
 
-// struct Delims_info{
-//     std::set<char32_t>          first_chars;
-//     std::vector<std::u32string> str_repres;
-// };
-//
-// static Delims_info delims_first_chars(const info_for_constructing::Info&  info,
-//                                              const Errors_and_tries&             et)
-// {
-//     Delims_info result;
-//     for(size_t del_idx : info.del_repres){
-//         auto delimiter = et.strs_trie->get_string(del_idx);
-//         delimiter_strings.push_back(delimiter);
-//         result.first_chars.insert(delimiter[0]);
-//     }
-//     return result;
-// }
-
 static std::vector<std::u32string>
     delims_str_repres(const info_for_constructing::Info&  info,
                       const Errors_and_tries&             et)

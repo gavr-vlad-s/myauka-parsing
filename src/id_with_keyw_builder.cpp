@@ -535,49 +535,47 @@ void Id_with_keyw_builder::Impl::
     auto& scaner_name         = info.names.name_of_scaner_class;
     result.proc_ptr           = fmt::format(keyword_aut_proc_ptr_fmt, scaner_name);
     result.proc_impl          = keyword_automaton_impl(info);
-//     result.final_proc_proto   = keyword_aut_final_proc_proto;
-//     result.final_proc_ptr     = fmt::format(keyword_aut_final_proc_ptr_fmt,
-//                                             info.names.name_of_scaner_class);
-//     result.final_proc_impl    = keyword_automaton_impl_finals(info);
-//     info.automata_info.push_back(result);
-//
-//     /* Next we add a idetifier automaton. */
-//     result.name               = ident_aut_name;
-//     result.proc_proto         = ident_aut_proc_proto;
-//     result.proc_ptr           = fmt::format(ident_aut_proc_ptr_fmt,
-//                                             info.names.name_of_scaner_class);
-//     auto ident_begin_cat_name =
-//         add_category_wrapper(info,
-//                              idents_first_chars_whithout_keyws_first_chars_,
-//                              ident_begin_cat_name_by_default);
-//     result.final_proc_proto   = ident_aut_final_proc_proto;
-//     auto ident_if             = fmt::format(ident_if_fmt,
-//                                             ident_begin_cat_name,
-//                                             info.identifier_preactions);
-//     info.ifs_of_start_procs.push_back(ident_if);
-//
-//     Str_data_for_automaton      f;
-//     f.automata_name           = ident_aut_name;
-//     f.proc_name               = "ident_proc"s;
-//     f.category_name_prefix    = "IDENTIFIER"s;
-//     f.diagnostic_msg          = "At line %zu unexpectedly ended an identifier.\n";
-//     f.final_states_set_name   = "final_states_for_idents";
-//     f.final_actions           = info.identifier_postactions +
-//                                 fmt::format(add_ident_to_table, info.names.ident_name);
-//     Automata_repres_builder repres_builder {f, sets_, et_, scope_};
-//     result.proc_impl                  = repres_builder.build_repres(info,
-//                                                                     info.regexps.idents);
-//     result.final_proc_ptr     = fmt::format(ident_aut_final_proc_ptr_fmt,
-//                                             info.names.name_of_scaner_class);
-//     result.final_proc_impl    = ident_automaton_impl_finals(info);
-//     info.automata_info.push_back(result);
+    result.final_proc_proto   = keyword_aut_final_proc_proto;
+    result.final_proc_ptr     = fmt::format(keyword_aut_final_proc_ptr_fmt,
+                                            scaner_name);
+    result.final_proc_impl    = keyword_automaton_impl_finals(info);
+    info.automata_info.push_back(result);
+
+    /* Next we add a idetifier automaton. */
+    result.name               = ident_aut_name;
+    result.proc_proto         = ident_aut_proc_proto;
+    result.proc_ptr           = fmt::format(ident_aut_proc_ptr_fmt, scaner_name);
+    auto ident_begin_cat_name =
+        add_category_wrapper(info,
+                             idents_first_chars_whithout_keyws_first_chars_,
+                             ident_begin_cat_name_by_default);
+    result.final_proc_proto   = ident_aut_final_proc_proto;
+    auto ident_if             = fmt::format(ident_if_fmt,
+                                            ident_begin_cat_name,
+                                            info.identifier_preactions);
+    info.ifs_of_start_procs.push_back(ident_if);
+
+    Str_data_for_automaton      f;
+    f.automata_name           = ident_aut_name;
+    f.proc_name               = "ident_proc"s;
+    f.category_name_prefix    = "IDENTIFIER"s;
+    f.diagnostic_msg          = "At line %zu unexpectedly ended an identifier.\\n";
+    f.final_states_set_name   = "final_states_for_idents";
+    f.final_actions           = info.identifier_postactions +
+                                fmt::format(add_ident_to_table, info.names.ident_name);
+    Automata_repres_builder repres_builder {f, sets_, et_, scope_};
+    result.proc_impl          = repres_builder.build_repres(info,
+                                                            info.regexps.idents);
+    result.final_proc_ptr     = fmt::format(ident_aut_final_proc_ptr_fmt, scaner_name);
+    result.final_proc_impl    = ident_automaton_impl_finals(info);
+    info.automata_info.push_back(result);
 }
 
-void Id_with_keyw_builder::some_keywords_are_not_idents_case(info_for_constructing::Info& info)
-{}
-
-void Id_with_keyw_builder::all_keywords_are_not_idents_case(info_for_constructing::Info& info)
-{}
+// void Id_with_keyw_builder::some_keywords_are_not_idents_case(info_for_constructing::Info& info)
+// {}
+//
+// void Id_with_keyw_builder::all_keywords_are_not_idents_case(info_for_constructing::Info& info)
+// {}
 
 /*
  * If any keyword is an identifier, then

@@ -31,19 +31,19 @@ void implement_automata(info_for_constructing::Info&     info,
     info.automata_info.push_back(unknown_automaton);
     implement_ident_and_keywords_automata(info,               et,
                                           sets_from_automata, scope);
-//     if(belongs(Delimiter_aut, info.set_of_used_automata)){
-//         auto da          = implement_delimiter_automaton(info, et, scope);
-//         info.automata_info.push_back(da);
-//         info.needed_Elem = true;
-//     }
-//     if(belongs(String_aut, info.set_of_used_automata)){
-//         auto sa          = implement_string_automaton(info,               et,
-//                                                       sets_from_automata, scope);
-//         info.automata_info.push_back(sa);
-//     }
-//     if(belongs(Number_aut, info.set_of_used_automata)){
-//         auto na          = implement_number_automaton(info,               et,
-//                                                       sets_from_automata, scope);
-//         info.automata_info.push_back(na);
-//     }
+    if(belongs(Delimiter_aut, info.set_of_used_automata)){
+        auto da          = implement_delimiter_automaton(info, et, scope);
+        info.automata_info.push_back(da);
+        info.needed_Elem = true;
+    }
+    if(belongs(String_aut, info.set_of_used_automata)){
+        auto sa          = implement_string_automaton(info,               et,
+                                                      sets_from_automata, scope);
+        info.automata_info.push_back(sa);
+    }
+    if(belongs(Number_aut, info.set_of_used_automata)){
+        auto na          = implement_number_automaton(info,               et,
+                                                      sets_from_automata, scope);
+        info.automata_info.push_back(na);
+    }
 }

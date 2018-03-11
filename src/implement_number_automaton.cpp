@@ -23,7 +23,7 @@ static const std::string number_aut_proc_ptr_fmt          = "&{0}::number_proc"s
 static const std::string number_aut_final_proc_proto      = "void number_final_proc()"s;
 static const std::string number_aut_final_proc_ptr_fmt    = "&{0}::number_final_proc"s;
 static const std::string number_diagnostic_msg            =
-    "At line %zu unexpectedly ended a number literal.\n"s;
+    "At line %zu unexpectedly ended a number literal.\\n"s;
 
 static const std::string number_begin_cat_name_by_default = "NUMBER_BEGIN"s;
 
@@ -54,15 +54,6 @@ static const std::string number_aut_final_proc_fmt      =
 //     std::string final_states_set_name;
 // };
 //
-
-
-// std::string automata_repres(info_for_constructing::Info&     info,
-//                             const Str_data_for_automaton&    f,
-//                             const Trie_for_set_of_char32ptr& sets,
-//                             const Errors_and_tries&          et,
-//                             const std::shared_ptr<Scope>&    scope,
-//                             const Regexp_kind                kind);
-
 
 static std::string number_automaton_impl_finals(const info_for_constructing::Info&  info)
 {
@@ -102,20 +93,15 @@ Automaton_constructing_info
     f.final_actions                   = info.number_postactions;
     result.name                       = number_aut_name;
     result.proc_proto                 = number_aut_proc_proto;
+    auto& scaner_name                 = info.names.name_of_scaner_class;
     result.proc_ptr                   = fmt::format(number_aut_proc_ptr_fmt,
-                                                    info.names.name_of_scaner_class);
+                                                    scaner_name);
     Automata_repres_builder repres_builder {f, sets_from_automata, et, scope};
     result.proc_impl                  = repres_builder.build_repres(info,
                                                                     info.regexps.numbers);
-//     result.proc_impl                  = automata_repres(info,
-//                                                         f,
-//                                                         sets_from_automata,
-//                                                         et,
-//                                                         scope,
-//                                                         Regexp_kind::Number);
-    result.final_proc_proto = number_aut_final_proc_proto;
-    result.final_proc_ptr   = fmt::format(number_aut_final_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.final_proc_impl  = number_automaton_impl_finals(info);
+//     result.final_proc_proto = number_aut_final_proc_proto;
+//     result.final_proc_ptr   = fmt::format(number_aut_final_proc_ptr_fmt,
+//                                           info.names.name_of_scaner_class);
+//     result.final_proc_impl  = number_automaton_impl_finals(info);
     return result;
 }

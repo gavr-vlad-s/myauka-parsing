@@ -75,7 +75,7 @@ void generate_separate_identifier_automat(info_for_constructing::Info&     info,
     f.automata_name                   = ident_aut_name;
     f.proc_name                       = "ident_proc"s;
     f.category_name_prefix            = "IDENTIFIER";
-    f.diagnostic_msg                  = "At line %zu unexpectedly ended an identifier.\n";
+    f.diagnostic_msg                  = "At line %zu unexpectedly ended an identifier.\\n";
     f.final_states_set_name           = "final_states_for_idents";
     f.final_actions                   = info.identifier_postactions +
                                         fmt::format(add_ident_to_table, info.names.ident_name);

@@ -35,8 +35,8 @@ private:
     std::unique_ptr<Impl> impl_;
 
 //     void all_keywords_are_idents_case(info_for_constructing::Info& info);
-    void some_keywords_are_not_idents_case(info_for_constructing::Info& info);
-    void all_keywords_are_not_idents_case(info_for_constructing::Info& info);
+//     void some_keywords_are_not_idents_case(info_for_constructing::Info& info);
+//     void all_keywords_are_not_idents_case(info_for_constructing::Info& info);
 //     Jumps_and_inits keywords_jumps(const info_for_constructing::Info&  info);
 };
 #endif

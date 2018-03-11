@@ -15,6 +15,7 @@
 #include "../include/join.h"
 #include "../include/get_act_repres.h"
 #include "../include/add_category.h"
+#include "../include/double_chars.h"
 
 // #define DEBUG_MODE_ON
 #ifdef DEBUG_MODE_ON
@@ -165,17 +166,20 @@ std::string
     return result;
 }
 
+static const std::set<char> doubled_chars = {'{', '}'};
+
 std::string Automata_repres_builder::build_repres(info_for_constructing::Info& info,
                                                   const Command_buffer&        regexp)
 {
     std::string result;
     G_DFA       gdfa              = info_to_automaton(regexp, sets_);
+    auto        final_actions_d   = double_chars(f_.final_actions, doubled_chars);
     std::string proc_def_template = fmt::format(aut_proc_template_fmt,
                                                 info.names.name_of_scaner_class,
                                                 f_.proc_name,
                                                 f_.final_states_set_name,
                                                 f_.diagnostic_msg,
-                                                f_.final_actions);
+                                                final_actions_d);
 #ifdef DEBUG_MODE_ON
     puts("proc_def_template:");
     puts(proc_def_template.c_str());
@@ -183,10 +187,10 @@ std::string Automata_repres_builder::build_repres(info_for_constructing::Info& i
 #endif
     std::string switch_for_proc   = automata_repres_switch(info, gdfa);
     std::string proc_impl         = fmt::format(proc_def_template, switch_for_proc);
-#ifdef DEBUG_MODE_ON
-    puts("proc_impl:");
-    puts(proc_impl.c_str());
-    puts("***********************************************************************");
-#endif
+// #ifdef DEBUG_MODE_ON
+//     puts("proc_impl:");
+//     puts(proc_impl.c_str());
+//     puts("***********************************************************************");
+// #endif
     return result;
 }

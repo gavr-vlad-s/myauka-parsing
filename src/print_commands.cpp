@@ -12,25 +12,6 @@
 #include "../include/operations_with_sets.h"
 #include "../include/print_char32.h"
 
-// enum class Command_name{
-//     Or,                    Concat,  Kleene,     Positive,
-//     Optional,              Char,    Char_class, Unknown,
-//     Char_class_complement, Multior, Multiconcat
-// };
-//
-// struct Command{
-//     size_t action_name; /* The index of the identifier that is the name of
-//                          * the action, in the prefix tree of identifiers. */
-//     Command_name name;
-//     union{
-//         struct {
-//             size_t first, second;
-//         } args;
-//         char32_t   c;
-//         size_t     idx_of_set;
-//     };
-// };
-
 static const char* command_names[] = {
     "Or",                    "Concat",  "Kleene",     "Positive",
     "Optional",              "Char",    "Char_class", "Unknown",

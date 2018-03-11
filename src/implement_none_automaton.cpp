@@ -30,10 +30,10 @@ static const std::string start_proc_newline_is_not_lexem_fmt =
     state  = -1;
     /* For an automaton that processes a lexeme, the state with the number (-1) is
      * the state in which this automaton is initialized. */
-    if(belongs(SPACES, char_categories)){
+    if(belongs(SPACES, char_categories)){{
         loc->current_line += U'\n' == ch;
         return t;
-    }
+    }}
     lexem_begin_line = loc->current_line;
     {{0}}
     return t;
@@ -45,61 +45,38 @@ static const std::string start_proc_newline_is_lexem_fmt =
     state  = -1;
     /* For an automaton that processes a lexeme, the state with the number (-1) is
      * the state in which this automaton is initialized. */
-    if(belongs(SPACES, char_categories)){
-        if(U'\n' == ch){
-            token.code = Newline;
+    if(belongs(SPACES, char_categories)){{
+        if(U'\n' == ch){{
+            token.code = {1}::Newline;
             lexem_begin_line = loc->current_line;
             loc->current_line += U'\n' == ch;
-        }
+        }}
         return t;
-    }
+    }}
     lexem_begin_line = loc->current_line;
     {{0}}
     return t;
 }})~"s;
 
 
-Automaton_constructing_info implement_none_automaton(const info_for_constructing::Info& info)
+Automaton_constructing_info
+    implement_none_automaton(const info_for_constructing::Info& info)
 {
     Automaton_constructing_info result;
     result.name             = start_aut_name;
     result.proc_proto       = start_aut_proc_proto;
-    result.proc_ptr         = fmt::format(start_aut_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    auto start_proc_fmt     = info.newline_is_lexem ? start_proc_newline_is_lexem_fmt :
-                                                      start_proc_newline_is_not_lexem_fmt;
-    result.proc_impl        = fmt::format(start_proc_fmt,
-                                          info.names.name_of_scaner_class);
+    auto& scaner_name       = info.names.name_of_scaner_class;
+    result.proc_ptr         = fmt::format(start_aut_proc_ptr_fmt, scaner_name);
+    if(info.newline_is_lexem){
+        result.proc_impl = fmt::format(start_proc_newline_is_lexem_fmt,
+                                       scaner_name,
+                                       info.names.codes_type_name);
+    }else{
+        result.proc_impl = fmt::format(start_proc_newline_is_not_lexem_fmt,
+                                       scaner_name);
+    }
     result.final_proc_proto = start_aut_final_proc_proto;
-    result.final_proc_ptr   = fmt::format(start_aut_final_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.final_proc_impl  = fmt::format(start_aut_final_proc_impl_fmt,
-                                          info.names.name_of_scaner_class);
+    result.final_proc_ptr   = fmt::format(start_aut_final_proc_ptr_fmt, scaner_name);
+    result.final_proc_impl  = fmt::format(start_aut_final_proc_impl_fmt, scaner_name);
     return result;
 }
-
-//     if(newline_is_lexem){
-//         constr_info.aut_impl[Start_aut] += start_proc_newline_is_lexem;
-//     }else{
-//         constr_info.aut_impl[Start_aut] += start_proc_newline_is_not_lexem;
-//     }
-
-//     if(belongs(Spaces, char_categories)){
-//         loc->current_line += U'\n' == ch;
-//         return t;
-//     }
-//     lexem_begin_line = loc->current_line;
-//     if(belongs(Percent, char_categories)){
-//         automaton = A_keyword; token.code = Unknown;
-//     }else if(belongs(Id_begin, char_categories)){
-//         automaton = A_id; buffer = U""; buffer += ch;
-//         token.code = Id;
-//     }else if(belongs(Delimiters, char_categories)){
-//         automaton = A_delimiter; token.code = Unknown;
-//         (loc->pcurrent_char)--;
-//     }else if(belongs(Double_quote, char_categories)){
-//          automaton = A_string; token.code = String;
-//          buffer = U""; (loc->pcurrent_char)--;
-//     }else{
-//         automaton = A_unknown; token.code = Unknown;
-//     }

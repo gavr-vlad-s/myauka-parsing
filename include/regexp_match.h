@@ -36,9 +36,12 @@ Match_result match_regexp(const Command_buffer&            buffer,
                           InputIterator                    first,
                           InputIterator                    last)
 {
-    Match_result result = {true, false};
+    Match_result result {true, false};
     G_DFA gdfa;
     grouped_DFA_by_regexp(gdfa, buffer, t);
+//     ////////////////////////////////////////////
+//     print_grouped_DFA(gdfa);
+//     ///////////////////////////////////////////
     for(auto it = first; it != last; ++it){
         bool t = match(gdfa, *it);
         result.is_all = result.is_all && t;

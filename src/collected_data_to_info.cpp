@@ -37,8 +37,7 @@ static const std::set<char32_t> spaces = {
 
 static const std::string spaces_name             = "SPACES"s;
 
-static Names data_to_names(const Collected_data&   d,
-                           const Errors_and_tries& et)
+static Names data_to_names(const Collected_data&   d, const Errors_and_tries& et)
 {
     Names result;
     auto& idst                          = et.ids_trie;
@@ -72,9 +71,6 @@ static Names data_to_names(const Collected_data&   d,
 
     return result;
 }
-
-//         std::string                      ;
-//         std::string                      ;
 
 static void collect_pre_and_postaction(info_for_constructing::Info& info,
                                        const Collected_data&        d,

@@ -16,6 +16,11 @@
 #include "../include/get_act_repres.h"
 #include "../include/add_category.h"
 
+// #define DEBUG_MODE_ON
+#ifdef DEBUG_MODE_ON
+#include <cstdio>
+#endif
+
 using namespace std::string_literals;
 
 static constexpr size_t indent_width           = 4;
@@ -31,35 +36,35 @@ R"~({0}state = {1};
 
 static const std::string set_of_cs_fmt =
 R"~(if(belongs({0}, char_categories)){{
-                    {1}state         = {2};
+                    {1}state      = {2};
                     there_is_jump = true;
                 }})~"s;
 
 static const std::string set_of_cs_complement_fmt =
 R"~(if(!belongs({0}, char_categories)){{
-                    {1}state         = {2};
+                    {1}state      = {2};
                     there_is_jump = true;
                 }})~"s;
 
 static const std::string aut_proc_template_fmt =
-    R"~(bool {0}::{1}(){{
+    R"~(bool {0}::{1}(){{{{
     bool t             = true;
     bool there_is_jump = false;
-    switch(state){{
+    switch(state){{{{
         {{0}}
         default:
             ;
-    }}
-    if(!there_is_jump){{
+    }}}}
+    if(!there_is_jump){{{{
         t = false;
-        if(!is_elem(state, {2})){{
+        if(!is_elem(state, {2})){{{{
             printf("{3}", loc->current_line);
             en->increment_number_of_errors();
-        }}
+        }}}}
         {4}
-    }}
+    }}}}
     return t;
-}})~"s;
+}}}})~"s;
 
 static const std::string case_fmt =
 R"~(        case {0}:
@@ -171,7 +176,17 @@ std::string Automata_repres_builder::build_repres(info_for_constructing::Info& i
                                                 f_.final_states_set_name,
                                                 f_.diagnostic_msg,
                                                 f_.final_actions);
+#ifdef DEBUG_MODE_ON
+    puts("proc_def_template:");
+    puts(proc_def_template.c_str());
+    puts("***********************************************************************");
+#endif
     std::string switch_for_proc   = automata_repres_switch(info, gdfa);
     std::string proc_impl         = fmt::format(proc_def_template, switch_for_proc);
+#ifdef DEBUG_MODE_ON
+    puts("proc_impl:");
+    puts(proc_impl.c_str());
+    puts("***********************************************************************");
+#endif
     return result;
 }

@@ -24,23 +24,21 @@ static const std::string unknown_aut_final_proc_impl_fmt =
      * out to be in the automaton A_unknown. Then we do not need to do anything. */
 }})~"s;
 static const std::string unknown_aut_proc_impl_fmt       =
-    R"~(bool {0}::unknown_proc(){
+    R"~(bool {0}::unknown_proc(){{
     return belongs(Other, char_categories);
-})~"s;
+}})~"s;
 
-Automaton_constructing_info implement_unknown_automaton(const info_for_constructing::Info& info)
+Automaton_constructing_info
+    implement_unknown_automaton(const info_for_constructing::Info& info)
 {
     Automaton_constructing_info result;
     result.name             = unknown_aut_name;
     result.proc_proto       = unknown_aut_proc_proto;
-    result.proc_ptr         = fmt::format(unknown_aut_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.proc_impl        = fmt::format(unknown_aut_proc_impl_fmt,
-                                          info.names.name_of_scaner_class);
+    auto& scaner_name       = info.names.name_of_scaner_class;
+    result.proc_ptr         = fmt::format(unknown_aut_proc_ptr_fmt, scaner_name);
+    result.proc_impl        = fmt::format(unknown_aut_proc_impl_fmt, scaner_name);
     result.final_proc_proto = unknown_aut_final_proc_proto;
-    result.final_proc_ptr   = fmt::format(unknown_aut_final_proc_ptr_fmt,
-                                          info.names.name_of_scaner_class);
-    result.final_proc_impl  = fmt::format(unknown_aut_proc_impl_fmt,
-                                          info.names.name_of_scaner_class);
+    result.final_proc_ptr   = fmt::format(unknown_aut_final_proc_ptr_fmt, scaner_name);
+    result.final_proc_impl  = fmt::format(unknown_aut_proc_impl_fmt, scaner_name);
     return result;
 }

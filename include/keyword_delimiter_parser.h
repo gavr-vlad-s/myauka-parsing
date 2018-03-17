@@ -23,8 +23,9 @@ using Settings = std::tuple<std::string, Str_kind, Main_lexem_code>;
 class KW_parser {
 public:
     KW_parser()                      = default;
-    KW_parser(std::shared_ptr<Scope> scope, Errors_and_tries et,
-              std::shared_ptr<Main_scaner>& msc_) :
+    KW_parser(const std::shared_ptr<Scope>&       scope,
+              const Errors_and_tries&             et,
+              const std::shared_ptr<Main_scaner>& msc_) :
         scope_(scope), et_(et), msc(msc_) {
             state                    = 0;
             repres                   = std::vector<size_t>();

@@ -25,38 +25,38 @@ static const std::string start_aut_final_proc_impl_fmt =
 }})~"s;
 
 static const std::string start_proc_newline_is_not_lexem_fmt =
-    R"~(bool {0}::start_proc(){{
+    R"~(bool {0}::start_proc(){{{{
     bool t = true;
     state  = -1;
     /* For an automaton that processes a lexeme, the state with the number (-1) is
      * the state in which this automaton is initialized. */
-    if(belongs(SPACES, char_categories)){{
+    if(belongs(SPACES, char_categories)){{{{
         loc->current_line += U'\n' == ch;
         return t;
-    }}
+    }}}}
     lexem_begin_line = loc->current_line;
     {{0}}
     return t;
-}})~"s;
+}}}})~"s;
 
 static const std::string start_proc_newline_is_lexem_fmt =
-    R"~(bool {0}::start_proc(){{
+    R"~(bool {0}::start_proc(){{{{
     bool t = true;
     state  = -1;
     /* For an automaton that processes a lexeme, the state with the number (-1) is
      * the state in which this automaton is initialized. */
-    if(belongs(SPACES, char_categories)){{
-        if(U'\n' == ch){{
-            token.code = {1}::Newline;
-            lexem_begin_line = loc->current_line;
+    if(belongs(SPACES, char_categories)){{{{
+        if(U'\n' == ch){{{{
+            token.code        =  {1}::Newline;
+            lexem_begin_line  =  loc->current_line;
             loc->current_line += U'\n' == ch;
-        }}
+        }}}}
         return t;
-    }}
+    }}}}
     lexem_begin_line = loc->current_line;
     {{0}}
     return t;
-}})~"s;
+}}}})~"s;
 
 
 Automaton_constructing_info

@@ -16,8 +16,5 @@
 // #include "../include/scope.h"
 // #include "../include/trie_for_set.h"
 
-void generate_scaner_class(const info_for_constructing::Info&     info);//,
-//                                               const Errors_and_tries&          et,
-//                                               const Trie_for_set_of_char32ptr& sets_from_automata,
-//                                               const std::shared_ptr<Scope>&    scope);
+void generate_scaner_class(const info_for_constructing::Info& info);//,
 #endif

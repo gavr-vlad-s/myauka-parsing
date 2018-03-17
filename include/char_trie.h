@@ -19,9 +19,9 @@ public:
 
     Char_trie(const Char_trie& orig) = default;
 
-    /* Using the index idx, this function builds C-style string
-     * corresponding to the index idx. */
-    char32_t* get_cstring(size_t idx);
+//     /* Using the index idx, this function builds C-style string
+//      * corresponding to the index idx. */
+//     char32_t* get_cstring(size_t idx);
 
     /* Using index idx, this function builds a string of the type u32string
      * corresponding to the index idx. */

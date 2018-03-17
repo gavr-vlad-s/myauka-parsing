@@ -26,12 +26,6 @@ namespace info_for_constructing{
         Command_buffer idents;
     };
 
-//     using Lexem_with_code = std::pair<std::string, size_t>;
-//     using Lexems          = std::vector<Lexem_with_code>;
-//
-//     struct Codes_info{
-//     };
-
     struct Names{
         std::string name_of_scaner_class;
         std::string scaner_file_name_without_ext;
@@ -42,10 +36,7 @@ namespace info_for_constructing{
         std::string header_additions;
         std::string impl_additions;
         std::string lexem_info_name;
-//         std::string fields_for_comments_handling;
     };
-
-//     using Delimiter_with_code = std::pair<std::u32string, size_t>;
 
     struct Comment_info{
         std::u32string mark_of_single_lined;
@@ -81,41 +72,4 @@ namespace info_for_constructing{
 //         Codes_info  codes_info;
     };
 };
-
-
-//     size_t scaner_name_idx          = 0;
-//
-//     //! The index of the identifier, which is the name of the type of lexem codes,
-//     //! in the prefix tree of identifiers.
-//     size_t codes_type_name_idx      = 0;
-//
-//     //! The index of the identifier, which is the code of lexem 'identifier', in the
-//     //! prefix tree of identifiers.
-//     size_t ident_name_idx           = 0;
-//
-//     //! Index of a string literal with fields added to a type that describes
-//     //! information about the lexeme.
-//     size_t token_fields_idx         = 0;
-//
-//     //! Index of a string literal with fields added to the scanner class.
-//     size_t class_members_idx        = 0;
-//
-//     //! Index of a string literal with additions to the header file of
-//     //! the generated scaner.
-//     size_t header_additions_idx     = 0;
-//
-//     //! Index of a string literal with additions to the implementation file of
-//     //! the generated scaner.
-//     size_t impl_additions_idx       = 0;
-//
-//     //! The index of the identifier, which is the name of the lexeme info type.
-//     size_t lexem_info_name_idx      = 0;
-//
-//     size_t write_action_name_idx;
-//
-//     size_t mark_of_single_lined     = 0;
-//     size_t mark_of_multilined_begin = 0;
-//     size_t mark_of_multilined_end   = 0;
-//     size_t multilined_is_nested     = 0;
-
 #endif

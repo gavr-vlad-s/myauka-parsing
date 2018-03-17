@@ -29,7 +29,9 @@
 #include "../include/aux_files_generate.h"
 #include "../include/collected_data_to_info.h"
 #include "../include/belongs.h"
-#include "../include/generate_scaner_class.h"
+// #include "../include/generate_scaner_class.h"
+#include "../include/scaner_class_builder.h"
+#include "../include/constructing_info_to_testing_info.h"
 
 // #define DEBUG_ON
 // #ifdef DEBUG_ON
@@ -109,10 +111,11 @@ public:
         return parsers_.et_.ec->get_number_of_errors();
     };
 
-    Parsers_ptrs    parsers_;
-    Main_lexem_info li_;
-    Main_lexem_code lc_;
-    Collected_data  data_;
+    Parsers_ptrs                        parsers_;
+    Main_lexem_info                     li_;
+    Main_lexem_code                     lc_;
+    Collected_data                      data_;
+    Info_for_generating_testing_program testing_data_;
 
 private:
     void init();
@@ -420,12 +423,16 @@ void Main_parser::compile()
         add_fictive_delimiters();
     }
 
-    auto info = collected_data_to_info(impl_->data_,
-                                       impl_->parsers_.et_,
-                                       impl_->parsers_.char32_sets_,
-                                       impl_->parsers_.scope_);
+    auto info             = collected_data_to_info(impl_->data_,
+                                                   impl_->parsers_.et_,
+                                                   impl_->parsers_.char32_sets_,
+                                                   impl_->parsers_.scope_);
     aux_files_generate();
-    generate_scaner_class(info);
+    Scaner_class_builder scaner_builder {info};
+    scaner_builder.build();
+
+    impl_->testing_data_ = constructing_info_to_testing_info(info);
+//     generate_scaner_class(info);
 }
 
 Main_parser::~Main_parser() = default;
@@ -503,4 +510,9 @@ void Main_parser::add_fictive_delimiters()
 int Main_parser::get_number_of_errors() const
 {
     return impl_->get_number_of_errors();
+}
+
+Info_for_generating_testing_program Main_parser::get_testing_info() const
+{
+    return impl_->testing_data_;
 }

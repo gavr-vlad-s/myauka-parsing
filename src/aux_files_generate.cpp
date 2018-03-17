@@ -141,10 +141,6 @@ public:
 
     Char_trie(const Char_trie& orig) = default;
 
-    /* Using the index idx, this function builds C-style string
-     * corresponding to the index idx. */
-    char32_t* get_cstring(size_t idx);
-
     /* Using index idx, this function builds a string of the type u32string
      * corresponding to the index idx. */
     std::u32string get_string(size_t idx);
@@ -717,13 +713,16 @@ static const char* char_trie_cpp =
 #include <algorithm>
 #include <string>
 #include <set>
+#include <memory>
+#include <cstdio>
 
-char32_t* Char_trie::get_cstring(size_t idx){
-    size_t id_len = node_buffer[idx].path_len;
-    char32_t* p = new char32_t[id_len + 1];
+std::u32string Char_trie::get_string(size_t idx)
+{
+    size_t id_len  = node_buffer[idx].path_len;
+    auto   p       = std::make_unique<char32_t[]>(id_len + 1);
     p[id_len] = 0;
     size_t current = idx;
-    size_t i       = id_len-1;
+    size_t i       = id_len - 1;
     /* Since idx is the index of the element in node_buffer containing the last
      * character of the inserted string, and each element of the vector node_buffer
      * contains the field parent that points to the element with the previous
@@ -734,23 +733,20 @@ char32_t* Char_trie::get_cstring(size_t idx){
     for( ; current; current = node_buffer[current].parent){
         p[i--] = node_buffer[current].c;
     }
-    return p;
-}
 
-std::u32string Char_trie::get_string(size_t idx){
-    char32_t* p = get_cstring(idx);
-    std::u32string s = std::u32string(p);
-    delete [] p;
+    std::u32string s = std::u32string(p.get());
     return s;
 }
 
-void Char_trie::print(size_t idx){
+void Char_trie::print(size_t idx)
+{
     std::u32string s32 = get_string(idx);
     std::string    s8  = u32string_to_utf8(s32);
     printf("%s",s8.c_str());
 }
 
-size_t Char_trie::get_length(size_t idx){
+size_t Char_trie::get_length(size_t idx)
+{
     return node_buffer[idx].path_len;
 })~";
 

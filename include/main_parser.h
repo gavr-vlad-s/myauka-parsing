@@ -12,6 +12,7 @@
 
 #include <memory>
 #include "../include/location.h"
+#include "../include/info_for_generating_testing_program.h"
 
 class Main_parser{
 public:
@@ -23,6 +24,7 @@ public:
     void compile();
 
     int get_number_of_errors() const;
+    Info_for_generating_testing_program get_testing_info() const;
 private:
     struct Main_parser_data;
     std::unique_ptr<Main_parser_data> impl_;

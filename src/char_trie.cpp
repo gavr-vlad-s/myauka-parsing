@@ -15,11 +15,13 @@
 #include <algorithm>
 #include <string>
 #include <set>
+#include <memory>
+#include <cstdio>
 
-char32_t* Char_trie::get_cstring(size_t idx)
+std::u32string Char_trie::get_string(size_t idx)
 {
-    size_t id_len = node_buffer[idx].path_len;
-    char32_t* p = new char32_t[id_len + 1];
+    size_t id_len  = node_buffer[idx].path_len;
+    auto   p       = std::make_unique<char32_t[]>(id_len + 1);
     p[id_len] = 0;
     size_t current = idx;
     size_t i       = id_len-1;
@@ -33,14 +35,8 @@ char32_t* Char_trie::get_cstring(size_t idx)
     for( ; current; current = node_buffer[current].parent){
         p[i--] = node_buffer[current].c;
     }
-    return p;
-}
 
-std::u32string Char_trie::get_string(size_t idx)
-{
-    char32_t* p = get_cstring(idx);
-    std::u32string s = std::u32string(p);
-    delete [] p;
+    std::u32string s = std::u32string(p.get());
     return s;
 }
 

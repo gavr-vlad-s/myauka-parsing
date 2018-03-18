@@ -26,16 +26,14 @@ public:
     KW_parser(const std::shared_ptr<Scope>&       scope,
               const Errors_and_tries&             et,
               const std::shared_ptr<Main_scaner>& msc_) :
-        scope_(scope), et_(et), msc(msc_) {
-            state                    = 0;
-            repres                   = std::vector<size_t>();
-            codes                    = std::vector<size_t>();
-            error_message_format_str = std::string();
-        };
+        scope_(scope), et_(et), msc(msc_),
+        repres(),      codes(), error_message_format_str(),
+        state(0) { };
     KW_parser(const KW_parser& orig) = default;
     virtual ~KW_parser()             = default;
 
-    size_t compile(std::vector<size_t>& repres_, std::vector<size_t>& codes_,
+    size_t compile(std::vector<size_t>& repres_,
+                   std::vector<size_t>& codes_,
                    size_t& last_code); //< return value is index of final action
 
 /**
@@ -49,26 +47,27 @@ public:
 protected:
     virtual Settings settings() = 0;
 private:
-    std::string                  error_message_format_str;
-    Str_kind                     k;
-    Main_lexem_code              checked_code;
-
-    Main_lexem_info              li;
-    Main_lexem_code              lc;
-
     std::shared_ptr<Scope>       scope_;
     Errors_and_tries             et_;
     std::shared_ptr<Main_scaner> msc;
 
-    unsigned                     state = 0;
-
     std::vector<size_t>          repres;
     std::vector<size_t>          codes;
+    std::string                  error_message_format_str;
+
+    unsigned                     state = 0;
+
     size_t                       last_code_val;
 
     size_t                       maybe_repres_str_idx;
     size_t                       idx;
     size_t                       postaction;
+
+    Str_kind                     k;
+    Main_lexem_code              checked_code;
+
+    Main_lexem_info              li;
+    Main_lexem_code              lc;
 
     typedef bool (KW_parser::*State_proc)();
 
@@ -145,8 +144,10 @@ private:
 class Keyword_parser : public KW_parser {
 public:
     Keyword_parser()                           = default;
-    Keyword_parser(std::shared_ptr<Scope> scope, Errors_and_tries et,
-                   std::shared_ptr<Main_scaner>& msc_) : KW_parser(scope, et, msc_) { };
+    Keyword_parser(const std::shared_ptr<Scope>&       scope,
+                   const Errors_and_tries&             et,
+                   const std::shared_ptr<Main_scaner>& msc_) :
+        KW_parser(scope, et, msc_) { };
 
     Keyword_parser(const Keyword_parser& orig) = default;
     virtual ~Keyword_parser()                  = default;
@@ -157,8 +158,10 @@ protected:
 class Delimiter_parser : public KW_parser {
 public:
     Delimiter_parser()                             = default;
-    Delimiter_parser(std::shared_ptr<Scope> scope, Errors_and_tries et,
-                     std::shared_ptr<Main_scaner>& msc_) : KW_parser(scope, et, msc_) { };
+    Delimiter_parser(const std::shared_ptr<Scope>&       scope,
+                     const Errors_and_tries&             et,
+                     const std::shared_ptr<Main_scaner>& msc_) :
+        KW_parser(scope, et, msc_) { };
 
     Delimiter_parser(const Delimiter_parser& orig) = default;
     virtual ~Delimiter_parser()                    = default;

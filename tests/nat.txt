@@ -1,0 +1,29 @@
+%scaner_name Scaner
+%codes_type Lexem_code
+
+%ident_name Ident
+
+%token_fields
+"unsigned __int128 int_val;
+__float128 float_val;"
+
+%class_members
+"__int128 integer_part;
+__int128 fractional_part;
+size_t exponent;
+ssize_t exp_sign;
+size_t frac_part_num_digits;
+bool is_float;
+char32_t precision;
+char32_t char_code;"
+
+%codes 
+String,   Char,    Integer,  Float32, 
+Float64,  Float80, Float128, Byte, 
+Unsigned
+
+%idents "buffer.clear();" : "" {([:Letter:]|[:letter:]|_)$write([:Letter:]|[:letter:]|_|[:digits:])$write*}
+
+%keywords 
+"байт" : Byte,
+"беззн" : Unsigned

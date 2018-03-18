@@ -11,6 +11,7 @@
 #include <tuple>
 #include "../include/keyword_delimiter_parser.h"
 #include "../include/belongs.h"
+#include "../include/char_conv.h"
 
 KW_parser::State_proc KW_parser::procs[] = {
     &KW_parser::maybe_repres_str_proc,     &KW_parser::colon_sep0_proc,
@@ -19,9 +20,10 @@ KW_parser::State_proc KW_parser::procs[] = {
     &KW_parser::kw_del_comma_sep_proc
 };
 
-static const std::string defined_keyword   = "Line %zu re-defines the keyword ";
-
-static const std::string defined_delimiter = "Line %zu re-defines the delimiter ";
+static const std::string defined_keyword         = "Line %zu re-defines the keyword %s.\n";
+static const std::string defined_delimiter       = "Line %zu re-defines the delimiter %s.\n";
+static const std::string not_defined_lexeme_code =
+    "Lexeme code %s is not defined at line %zu.\n";
 
 Settings Keyword_parser::settings(){
     return std::make_tuple(defined_keyword, Keyword_repres, Kw_keywords);
@@ -34,27 +36,40 @@ Settings Delimiter_parser::settings(){
 void KW_parser::add_new_string(const size_t idx, const size_t code_)
 {
     auto s = scope_->strsc.find(idx);
+    if(s != scope_->strsc.end()){
+        auto kw_del_str = u32string_to_utf8(et_.strs_trie->get_string(idx));
+        printf(error_message_format_str.c_str(),
+               msc->lexem_begin_line_number(),
+               kw_del_str.c_str());
+        et_.ec -> increment_number_of_errors();
+        return;
+    }
+
+    auto s1 = scope_->idsc.find(code_);
+    if(s1 == scope_->idsc.end()){
+        auto code_str = u32string_to_utf8(et_.strs_trie->get_string(code_));
+        printf(not_defined_lexeme_code.c_str(),
+               code_str.c_str(),
+               msc->lexem_begin_line_number());
+        et_.ec -> increment_number_of_errors();
+        return;
+    }
+
     Str_attributes sattr;
     Id_attributes  iattr;
-    if(s != scope_->strsc.end()){
-        printf(error_message_format_str.c_str(), msc->lexem_begin_line_number());
-        et_.strs_trie->print(idx); printf("\n");
-        et_.ec -> increment_number_of_errors();
-    }else{
-        auto s1 = scope_->idsc.find(code_);
-        if(s1 == scope_->idsc.end()){
-             iattr.kind = Code_of_lexem;
-             iattr.code = ++last_code_val;
-             scope_->idsc[idx] = iattr;
-             codes.push_back(idx);
-        }else{
-            iattr = s1->second;
-        }
-    sattr.kind  = k;
-    sattr.code  = iattr.code;
-    scope_->strsc[idx] = sattr;
-    repres.push_back(idx);
-    }
+
+//     if(s1 == scope_->idsc.end()){
+// //         iattr.kind = Code_of_lexem;
+// //         iattr.code = ++last_code_val;
+// //         scope_->idsc[idx] = iattr;
+// //         codes.push_back(idx);
+//     }else{
+// //         iattr = s1->second;
+//     }
+//     sattr.kind  = k;
+//     sattr.code  = iattr.code;
+//     scope_->strsc[idx] = sattr;
+//     repres.push_back(idx);
 }
 
 size_t KW_parser::compile(std::vector<size_t>& repres_,

@@ -293,6 +293,7 @@ std::string Scaner_class_builder::Impl::union_body()
     };
 
     Id_Str e = static_cast<Id_Str>(t1 * 2 + t2);
+    printf("%s\n", info_.names.token_fields.c_str());
     result   = fmt::format(id_str_fmt[e], info_.names.token_fields);
     return result;
 }
